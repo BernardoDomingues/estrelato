@@ -1,7 +1,7 @@
 import { Team } from './team';
 
 export interface League {
-  id: string;
+  id: number;
   name: string;
   country: string;
   teams: Team[];

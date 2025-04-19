@@ -12,6 +12,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { FaTrophy, FaUsers, FaMoneyBillWave, FaChartLine } from 'react-icons/fa';
+import { useRouter } from 'next/router'
 
 export default function Home() {
   const bgGradient = useColorModeValue(
@@ -19,6 +20,7 @@ export default function Home() {
     'linear(to-r, green.900, blue.900)'
   );
   const textColor = useColorModeValue('gray.600', 'gray.300');
+  const router = useRouter()
 
   return (
     <Box>
@@ -51,6 +53,7 @@ export default function Home() {
                 size="lg"
                 colorScheme="green"
                 rightIcon={<Icon as={FaTrophy} />}
+                onClick={() => router.push('/start')}
               >
                 Começar Carreira
               </Button>
