@@ -9,6 +9,7 @@ import {
   UseRadioProps,
 } from '@chakra-ui/react';
 import { Team } from '../types/team';
+import dayjs from 'dayjs'
 
 interface TeamCardProps extends UseRadioProps {
   team: Team;
@@ -40,6 +41,7 @@ function TeamCard(props: TeamCardProps) {
         px={5}
         py={3}
         transition="all 0.2s"
+        width="200px"
       >
         <VStack spacing={3}>
           <Box
@@ -62,7 +64,7 @@ function TeamCard(props: TeamCardProps) {
               <Text fontSize="xs" color="gray.500">
                 Fundado em
               </Text>
-              <Text fontWeight="bold">{team.founded.toISOString().split('T')[0]}</Text>
+              <Text fontWeight="bold">{dayjs(team.founded).format('DD/MM/YYYY')}</Text>
             </VStack>
           </HStack>
         </VStack>

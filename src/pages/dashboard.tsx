@@ -28,7 +28,7 @@ import { useRouter } from 'next/router';
 import { Team } from '../types/team';
 import { teams } from '@/data/teams';
 import { leagues } from '@/data/leagues';
-import dayjs from 'dayjs'
+import dayjs from 'dayjs';
 
 export default function Dashboard() {
   const [managerName, setManagerName] = useState('');
@@ -154,8 +154,8 @@ export default function Dashboard() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {team.players.slice(0, 11).map((player) => (
-                    <Tr key={player.id}>
+                  {team.players.map((player) => (
+                    <Tr key={player.id} _hover={{ bg: "gray.100" }}> 
                       <Td>{player.name}</Td>
                       <Td>{player.position}</Td>
                       <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
@@ -164,9 +164,6 @@ export default function Dashboard() {
                   ))}
                 </Tbody>
               </Table>
-              <Button size="sm" colorScheme="blue" variant="outline" mt={4}>
-                Ver elenco completo
-              </Button>
             </Box>
           </GridItem>
 
@@ -218,7 +215,7 @@ export default function Dashboard() {
                     maximumFractionDigits: 0
                   }).format(team.finances.wageBudget)}
                 </StatNumber>
-                <StatHelpText>Por mu00eas</StatHelpText>
+                <StatHelpText>Por mês</StatHelpText>
               </Stat>
             </Box>
           </GridItem>

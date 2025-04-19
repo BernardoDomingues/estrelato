@@ -80,7 +80,7 @@ export default function Start() {
               bgGradient="linear(to-r, green.500, blue.500)"
               bgClip="text"
             >
-              Football Manager Brasil
+              Estrelato Brasil
             </Heading>
             <Text fontSize="xl" maxW="600px">
               Comece sua jornada como técnico e leve seu time ao topo do futebol brasileiro.
@@ -126,7 +126,7 @@ export default function Start() {
           </Box>
 
           <Text textAlign="center" fontSize="sm" color="gray.600">
-            © 2023 Football Manager Brasil - Todos os direitos reservados
+            © 2025 Estrelato Brasil - Todos os direitos reservados
           </Text>
         </VStack>
       </Container>
