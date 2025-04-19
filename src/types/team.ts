@@ -1,16 +1,15 @@
-import { Contract } from "./player";
+import { Player } from "./player";
 
 export interface Team {
-  id: string;
+  id: number;
   name: string;
   shortName: string;
   city: string;
   country: string;
   founded: Date;
-  contracts: Contract[];
+  players: Player[];
   finances: TeamFinances;
   facilities: TeamFacilities;
-  reputation: number; // 1-100
   colors: {
     primary: string;
     secondary: string;

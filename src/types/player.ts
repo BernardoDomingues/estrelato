@@ -1,11 +1,15 @@
 export interface Player {
-    id: string;
+    id: number;
     name: string;
     birth: Date;
+    height: string | null;
+    weight: string | null;
+    photo: string;
     position: Position;
     nationality: string;
     potential: number;
     attributes: PlayerAttributes;
+    overall: number;
   }
   
   export type Position = 
@@ -35,7 +39,6 @@ export interface Player {
     marking: number;
   
     // Physical
-    pace: number;
     strength: number;
     stamina: number;
     jumping: number;
@@ -46,12 +49,4 @@ export interface Player {
     positioning: number;
     decisions: number;
     workRate: number;
-    leadership: number;
-  }
-  
-  export interface Contract {
-    startDate: Date;
-    endDate: Date;
-    salary: number;
-    player: Player;
   }
