@@ -21,35 +21,35 @@ import {
   Td,
   Button,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { Team } from '../types/team';
-import { teams } from '@/data/teams';
-import { leagues } from '@/data/leagues';
-import dayjs from 'dayjs';
-import NextMatch from '@/components/NextMatch';
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { Team } from "../types/team";
+import { teams } from "@/data/teams";
+import { leagues } from "@/data/leagues";
+import dayjs from "dayjs";
+import NextMatch from "@/components/NextMatch";
 
 export default function Dashboard() {
-  const [managerName, setManagerName] = useState('');
+  const [managerName, setManagerName] = useState("");
   const [team, setTeam] = useState<Team | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const bgColor = useColorModeValue('white', 'gray.800');
+  const bgColor = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
-    const storedName = localStorage.getItem('managerName');
-    const storedTeamId = localStorage.getItem('teamId');
+    const storedName = localStorage.getItem("managerName");
+    const storedTeamId = localStorage.getItem("teamId");
 
     if (!storedName || !storedTeamId) {
-      router.replace('/');
+      router.replace("/");
       return;
     }
 
     setManagerName(storedName);
 
-    const selectedTeam = teams.find(t => t.id === parseInt(storedTeamId));
+    const selectedTeam = teams.find((t) => t.id === parseInt(storedTeamId));
     if (selectedTeam) {
       setTeam(selectedTeam);
     }
@@ -68,7 +68,10 @@ export default function Dashboard() {
   if (!team) {
     return (
       <Flex height="100vh" align="center" justify="center">
-        <Text>Time não encontrado. <Button onClick={() => router.push('/')}>Voltar</Button></Text>
+        <Text>
+          Time não encontrado.{" "}
+          <Button onClick={() => router.push("/")}>Voltar</Button>
+        </Text>
       </Flex>
     );
   }
@@ -95,10 +98,10 @@ export default function Dashboard() {
               <Stat size="sm">
                 <StatLabel color="whiteAlpha.800">Orçamento</StatLabel>
                 <StatNumber>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0
+                  {new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                    maximumFractionDigits: 0,
                   }).format(team.finances.transferBudget)}
                 </StatNumber>
               </Stat>
@@ -119,15 +122,21 @@ export default function Dashboard() {
               <Button
                 colorScheme="green"
                 size="md"
-                onClick={() => router.push('/pre-game')}
-                leftIcon={<Box as="span" fontSize="lg">⚽</Box>}
+                onClick={() => router.push("/pre-game")}
+                leftIcon={
+                  <Box as="span" fontSize="lg">
+                    ⚽
+                  </Box>
+                }
               >
                 Preparar para a Partida
               </Button>
             </NextMatch>
 
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
-              <Heading size="md" mb={4}>Elenco</Heading>
+              <Heading size="md" mb={8}>
+                Elenco
+              </Heading>
               <Table variant="simple" size="sm">
                 <Thead>
                   <Tr>
@@ -140,9 +149,21 @@ export default function Dashboard() {
                 <Tbody>
                   {team.players.map((player) => (
                     <Tr key={player.id} _hover={{ bg: "gray.100" }}>
-                      <Td>{player.name}</Td>
+                  <Td>
+                  <Flex align="center">
+                    <Avatar
+                      size="sm"
+                      name={player.name}
+                      src={player.photo}
+                      bg={team.colors.primary}
+                      color="white"
+                      mr={2}
+                    />
+                    {player.name}
+                  </Flex>
+                </Td>
                       <Td>{player.position}</Td>
-                      <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
+                      <Td isNumeric>{dayjs().diff(player.birth, "year")}</Td>
                       <Td isNumeric>{player.overall}</Td>
                     </Tr>
                   ))}
@@ -159,7 +180,7 @@ export default function Dashboard() {
                   size="sm"
                   colorScheme="blue"
                   variant="outline"
-                  onClick={() => router.push('/league-table')}
+                  onClick={() => router.push("/league-table")}
                 >
                   Ver Tabela Completa
                 </Button>
@@ -180,8 +201,14 @@ export default function Dashboard() {
                       return (
                         <Tr
                           key={standing.team.id}
-                          bg={standing.team.id === team.id ? `${team.colors.primary}10` : undefined}
-                          fontWeight={standing.team.id === team.id ? "bold" : "normal"}
+                          bg={
+                            standing.team.id === team.id
+                              ? `${team.colors.primary}10`
+                              : undefined
+                          }
+                          fontWeight={
+                            standing.team.id === team.id ? "bold" : "normal"
+                          }
                         >
                           <Td>{index + 1}</Td>
                           <Td>{standing.team.name}</Td>
@@ -194,14 +221,16 @@ export default function Dashboard() {
             </Box>
 
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
-              <Heading size="md" mb={4}>Finanças</Heading>
+              <Heading size="md" mb={4}>
+                Finanças
+              </Heading>
               <Stat mb={4}>
                 <StatLabel>Saldo</StatLabel>
                 <StatNumber>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0
+                  {new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                    maximumFractionDigits: 0,
                   }).format(team.finances.transferBudget)}
                 </StatNumber>
                 <StatHelpText>Receita mensal: +R$ 1.2M</StatHelpText>
@@ -210,10 +239,10 @@ export default function Dashboard() {
               <Stat mb={4}>
                 <StatLabel>Folha Salarial</StatLabel>
                 <StatNumber>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0
+                  {new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                    maximumFractionDigits: 0,
                   }).format(team.finances.wageBudget)}
                 </StatNumber>
                 <StatHelpText>Por mês</StatHelpText>
