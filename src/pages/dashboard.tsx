@@ -136,9 +136,20 @@ export default function Dashboard() {
                 </VStack>
                 
                 <HStack spacing={4}>
-                  <Text fontWeight="bold">Palmeiras</Text>
-                  <Avatar name="Palmeiras" bg="green.500" color="white" />
+                  <Text fontWeight="bold">Cruzeiro</Text>
+                  <Avatar name="Cruzeiro" bg="#0000FF" color="white" />
                 </HStack>
+              </Flex>
+              
+              <Flex justify="center" mt={4}>
+                <Button 
+                  colorScheme="green" 
+                  size="md" 
+                  onClick={() => router.push('/pre-game')}
+                  leftIcon={<Box as="span" fontSize="lg">⚽</Box>}
+                >
+                  Preparar para a Partida
+                </Button>
               </Flex>
             </Box>
             

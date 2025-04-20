@@ -42,6 +42,7 @@ function TeamCard(props: TeamCardProps) {
         py={3}
         transition="all 0.2s"
         width="200px"
+        margin="10px"
       >
         <VStack spacing={3}>
           <Box
