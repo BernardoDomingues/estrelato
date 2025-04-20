@@ -35,6 +35,7 @@ import { teams } from '@/data/teams';
 import dayjs from 'dayjs';
 import { ArrowBackIcon, CheckIcon } from '@chakra-ui/icons';
 import FootballField from '@/components/FootballField';
+import NextMatch from '@/components/NextMatch';
 
 type Formation = '4-4-2' | '4-3-3' | '3-5-2' | '4-2-3-1' | '5-3-2';
 
@@ -80,34 +81,42 @@ export default function PreGame() {
   const [offensiveStyle, setOffensiveStyle] = useState('balanced');
 
   console.log(selectedPlayers);
-  
+
   const router = useRouter();
   const toast = useToast();
   const bgColor = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
     const storedTeamId = localStorage.getItem('teamId');
-    
+    const opponentId = localStorage.getItem('opponentId');
+
     if (!storedTeamId) {
       router.replace('/');
       return;
     }
-    
+
     const selectedTeam = teams.find(t => t.id === parseInt(storedTeamId));
     if (selectedTeam) {
       setTeam(selectedTeam);
-      
-      const nextOpponent = teams.find(t => t.id !== parseInt(storedTeamId));
-      if (nextOpponent) {
-        setOpponent(nextOpponent);
+
+      if (opponentId) {
+        const nextOpponent = teams.find(t => t.id === parseInt(opponentId));
+        if (nextOpponent) {
+          setOpponent(nextOpponent);
+        }
+      } else {
+        const nextOpponent = teams.find(t => t.id !== parseInt(storedTeamId));
+        if (nextOpponent) {
+          setOpponent(nextOpponent);
+        }
       }
-      
+
       const playersWithPosition = selectedTeam.players.map(player => ({
         ...player,
         isSelected: false,
         positionInFormation: '',
       }));
-      
+
       const sortedPlayers = [...playersWithPosition].sort((a, b) => {
         if (a.position !== b.position) {
           const positionOrder: Record<string, number> = {
@@ -120,16 +129,16 @@ export default function PreGame() {
         }
         return b.overall - a.overall;
       });
-      
+
       const positions = formationPositions[formation];
       const selected: PlayerWithPosition[] = [];
       const remaining: PlayerWithPosition[] = [];
-      
+
       positions.forEach(positionNeeded => {
         const playerIndex = sortedPlayers.findIndex(
           p => !p.isSelected && p.position === positionNeeded
         );
-        
+
         if (playerIndex !== -1) {
           const player = { ...sortedPlayers[playerIndex] };
           player.isSelected = true;
@@ -140,7 +149,7 @@ export default function PreGame() {
           const compatibleIndex = sortedPlayers.findIndex(
             p => !p.isSelected && compatiblePositions[positionNeeded]?.includes(p.position)
           );
-          
+
           if (compatibleIndex !== -1) {
             const player = { ...sortedPlayers[compatibleIndex] };
             player.isSelected = true;
@@ -156,11 +165,11 @@ export default function PreGame() {
           remaining.push(player);
         }
       });
-      
+
       setSelectedPlayers(selected);
       setBenchPlayers(remaining);
     }
-    
+
     setIsLoading(false);
   }, [router, formation]);
 
@@ -182,7 +191,7 @@ export default function PreGame() {
 
   const swapPlayers = (starter: PlayerWithPosition, bench: PlayerWithPosition) => {
     const positionInFormation = starter.positionInFormation || '';
-    
+
     if (!compatiblePositions[positionInFormation]?.includes(bench.position)) {
       toast({
         title: 'Posição incompatível',
@@ -193,23 +202,23 @@ export default function PreGame() {
       });
       return;
     }
-    
+
     const newBench = { ...starter };
     newBench.isSelected = false;
     newBench.positionInFormation = '';
-    
+
     const newStarter = { ...bench };
     newStarter.isSelected = true;
     newStarter.positionInFormation = positionInFormation;
-    
-    const updatedStarters = selectedPlayers.map(p => 
+
+    const updatedStarters = selectedPlayers.map(p =>
       p.id === starter.id ? newStarter : p
     );
-    
-    const updatedBench = benchPlayers.map(p => 
+
+    const updatedBench = benchPlayers.map(p =>
       p.id === bench.id ? newBench : p
     );
-    
+
     setSelectedPlayers(updatedStarters);
     setBenchPlayers(updatedBench);
   };
@@ -222,13 +231,13 @@ export default function PreGame() {
       duration: 2000,
       isClosable: true,
     });
-    
+
     localStorage.setItem('formation', formation);
     localStorage.setItem('tacticalStyle', tacticalStyle);
     localStorage.setItem('defensiveStyle', defensiveStyle);
     localStorage.setItem('offensiveStyle', offensiveStyle);
     localStorage.setItem('selectedPlayers', JSON.stringify(selectedPlayers));
-    
+
     setTimeout(() => {
       router.push('/match-simulation');
     }, 1000);
@@ -265,15 +274,6 @@ export default function PreGame() {
               />
               <Heading size="md">Preparação para a Partida</Heading>
             </HStack>
-            
-            <Button
-              rightIcon={<CheckIcon />}
-              colorScheme="green"
-              variant="solid"
-              onClick={startMatch}
-            >
-              Iniciar Partida
-            </Button>
           </Flex>
         </Container>
       </Box>
@@ -281,38 +281,22 @@ export default function PreGame() {
       <Container maxW="container.xl" py={8}>
         <Grid templateColumns="repeat(12, 1fr)" gap={6}>
           <GridItem colSpan={{ base: 12, md: 12 }}>
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
-              <Heading size="md" mb={4}>Próxima Partida</Heading>
-              <Flex 
-                justify="space-between" 
-                align="center"
-                bg="gray.50" 
-                p={4} 
-                borderRadius="md"
+            <NextMatch team={team}>
+              <Button
+                rightIcon={<CheckIcon />}
+                colorScheme="green"
+                variant="solid"
+                onClick={startMatch}
               >
-                <HStack spacing={4}>
-                  <Avatar name={team.name} bg={team.colors.primary} color="white" />
-                  <Text fontWeight="bold">{team.name}</Text>
-                </HStack>
-                
-                <VStack>
-                  <Badge colorScheme="green">Brasileirão</Badge>
-                  <Text fontWeight="bold">VS</Text>
-                  <Text fontSize="sm">15/01/2023 - 16:00</Text>
-                </VStack>
-                
-                <HStack spacing={4}>
-                  <Text fontWeight="bold">{opponent.name}</Text>
-                  <Avatar name={opponent.name} bg={opponent.colors.primary} color="white" />
-                </HStack>
-              </Flex>
-            </Box>
+                Iniciar Partida
+              </Button>
+            </NextMatch>
           </GridItem>
 
           <GridItem colSpan={{ base: 12, md: 4 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
               <Heading size="md" mb={4}>Configurações Táticas</Heading>
-              
+
               <VStack spacing={4} align="stretch">
                 <Box>
                   <Text mb={2}>Formação</Text>
@@ -324,7 +308,7 @@ export default function PreGame() {
                     <option value="5-3-2">5-3-2</option>
                   </Select>
                 </Box>
-                
+
                 <Box>
                   <Text mb={2}>Estilo de Jogo</Text>
                   <Select value={tacticalStyle} onChange={handleTacticalStyleChange}>
@@ -334,7 +318,7 @@ export default function PreGame() {
                     <option value="direct">Jogo Direto</option>
                   </Select>
                 </Box>
-                
+
                 <Box>
                   <Text mb={2}>Estilo Defensivo</Text>
                   <Select value={defensiveStyle} onChange={handleDefensiveStyleChange}>
@@ -344,7 +328,7 @@ export default function PreGame() {
                     <option value="park-the-bus">Retrancado</option>
                   </Select>
                 </Box>
-                
+
                 <Box>
                   <Text mb={2}>Estilo Ofensivo</Text>
                   <Select value={offensiveStyle} onChange={handleOffensiveStyleChange}>
@@ -361,123 +345,123 @@ export default function PreGame() {
           <GridItem colSpan={{ base: 12, md: 8 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
               <Heading size="md" mb={4}>Escalação: {formation}</Heading>
-              
-              <Box 
-                borderRadius="md" 
-                p={4} 
+
+              <Box
+                borderRadius="md"
+                p={4}
                 height="400px"
                 position="relative"
               >
                 <FootballField>
-                {selectedPlayers.map((player, index) => {
-                  const positions: Record<Formation, Record<number, { top: string, left: string }>> = {
-                    '4-3-3': {
-                      0: { top: '85%', left: '50%' }, // GK
-                      1: { top: '65%', left: '20%' }, // LB
-                      2: { top: '65%', left: '35%' }, // CB
-                      3: { top: '65%', left: '65%' }, // CB
-                      4: { top: '65%', left: '80%' }, // RB
-                      5: { top: '45%', left: '50%' }, // CDM
-                      6: { top: '45%', left: '30%' }, // CM
-                      7: { top: '45%', left: '70%' }, // CM
-                      8: { top: '25%', left: '20%' }, // LW
-                      9: { top: '15%', left: '50%' }, // ST
-                      10: { top: '25%', left: '80%' } // RW
-                    },
-                    '4-4-2': {
-                      0: { top: '85%', left: '50%' }, // GK
-                      1: { top: '65%', left: '20%' }, // LB
-                      2: { top: '65%', left: '35%' }, // CB
-                      3: { top: '65%', left: '65%' }, // CB
-                      4: { top: '65%', left: '80%' }, // RB
-                      5: { top: '45%', left: '20%' }, // LM
-                      6: { top: '45%', left: '35%' }, // CM
-                      7: { top: '45%', left: '65%' }, // CM
-                      8: { top: '45%', left: '80%' }, // RM
-                      9: { top: '15%', left: '35%' }, // ST
-                      10: { top: '15%', left: '65%' } // ST
-                    },
-                    '3-5-2': {
-                      0: { top: '85%', left: '50%' }, // GK
-                      1: { top: '65%', left: '30%' }, // CB
-                      2: { top: '65%', left: '50%' }, // CB
-                      3: { top: '65%', left: '70%' }, // CB
-                      4: { top: '45%', left: '15%' }, // LM
-                      5: { top: '45%', left: '35%' }, // CM
-                      6: { top: '45%', left: '50%' }, // CDM
-                      7: { top: '45%', left: '65%' }, // CM
-                      8: { top: '45%', left: '85%' }, // RM
-                      9: { top: '15%', left: '35%' }, // ST
-                      10: { top: '15%', left: '65%' } // ST
-                    },
-                    '4-2-3-1': {
-                      0: { top: '85%', left: '50%' }, // GK
-                      1: { top: '65%', left: '20%' }, // LB
-                      2: { top: '65%', left: '35%' }, // CB
-                      3: { top: '65%', left: '65%' }, // CB
-                      4: { top: '65%', left: '80%' }, // RB
-                      5: { top: '50%', left: '35%' }, // CDM
-                      6: { top: '50%', left: '65%' }, // CDM
-                      7: { top: '30%', left: '20%' }, // LM
-                      8: { top: '30%', left: '50%' }, // CAM
-                      9: { top: '30%', left: '80%' }, // RM
-                      10: { top: '15%', left: '50%' } // ST
-                    },
-                    '5-3-2': {
-                      0: { top: '85%', left: '50%' }, // GK
-                      1: { top: '65%', left: '15%' }, // LB
-                      2: { top: '65%', left: '30%' }, // CB
-                      3: { top: '65%', left: '50%' }, // CB
-                      4: { top: '65%', left: '70%' }, // CB
-                      5: { top: '65%', left: '85%' }, // RB
-                      6: { top: '45%', left: '30%' }, // CM
-                      7: { top: '45%', left: '50%' }, // CM
-                      8: { top: '45%', left: '70%' }, // CM
-                      9: { top: '15%', left: '35%' }, // ST
-                      10: { top: '15%', left: '65%' } // ST
-                    }
-                  };
-                  
-                  const position = positions[formation][index];
-                  
-                  return (
-                    <Box
-                      key={player.id}
-                      position="absolute"
-                      top={position.top}
-                      left={position.left}
-                      transform="translate(-50%, -50%)"
-                      textAlign="center"
-                    >
-                      <Avatar 
-                        size="sm" 
-                        name={player.name}
-                        src={player.photo}
-                        bg={team.colors.primary} 
-                        color="white"
-                        mb={1}
-                      />
-                      <Text 
-                        fontSize="xs" 
-                        fontWeight="bold" 
-                        bg="white" 
-                        px={1} 
-                        borderRadius="sm"
+                  {selectedPlayers.map((player, index) => {
+                    const positions: Record<Formation, Record<number, { top: string, left: string }>> = {
+                      '4-3-3': {
+                        0: { top: '85%', left: '50%' }, // GK
+                        1: { top: '65%', left: '20%' }, // LB
+                        2: { top: '65%', left: '35%' }, // CB
+                        3: { top: '65%', left: '65%' }, // CB
+                        4: { top: '65%', left: '80%' }, // RB
+                        5: { top: '45%', left: '50%' }, // CDM
+                        6: { top: '45%', left: '30%' }, // CM
+                        7: { top: '45%', left: '70%' }, // CM
+                        8: { top: '25%', left: '20%' }, // LW
+                        9: { top: '15%', left: '50%' }, // ST
+                        10: { top: '25%', left: '80%' } // RW
+                      },
+                      '4-4-2': {
+                        0: { top: '85%', left: '50%' }, // GK
+                        1: { top: '65%', left: '20%' }, // LB
+                        2: { top: '65%', left: '35%' }, // CB
+                        3: { top: '65%', left: '65%' }, // CB
+                        4: { top: '65%', left: '80%' }, // RB
+                        5: { top: '45%', left: '20%' }, // LM
+                        6: { top: '45%', left: '35%' }, // CM
+                        7: { top: '45%', left: '65%' }, // CM
+                        8: { top: '45%', left: '80%' }, // RM
+                        9: { top: '15%', left: '35%' }, // ST
+                        10: { top: '15%', left: '65%' } // ST
+                      },
+                      '3-5-2': {
+                        0: { top: '85%', left: '50%' }, // GK
+                        1: { top: '65%', left: '30%' }, // CB
+                        2: { top: '65%', left: '50%' }, // CB
+                        3: { top: '65%', left: '70%' }, // CB
+                        4: { top: '45%', left: '15%' }, // LM
+                        5: { top: '45%', left: '35%' }, // CM
+                        6: { top: '45%', left: '50%' }, // CDM
+                        7: { top: '45%', left: '65%' }, // CM
+                        8: { top: '45%', left: '85%' }, // RM
+                        9: { top: '15%', left: '35%' }, // ST
+                        10: { top: '15%', left: '65%' } // ST
+                      },
+                      '4-2-3-1': {
+                        0: { top: '85%', left: '50%' }, // GK
+                        1: { top: '65%', left: '20%' }, // LB
+                        2: { top: '65%', left: '35%' }, // CB
+                        3: { top: '65%', left: '65%' }, // CB
+                        4: { top: '65%', left: '80%' }, // RB
+                        5: { top: '50%', left: '35%' }, // CDM
+                        6: { top: '50%', left: '65%' }, // CDM
+                        7: { top: '30%', left: '20%' }, // LM
+                        8: { top: '30%', left: '50%' }, // CAM
+                        9: { top: '30%', left: '80%' }, // RM
+                        10: { top: '15%', left: '50%' } // ST
+                      },
+                      '5-3-2': {
+                        0: { top: '85%', left: '50%' }, // GK
+                        1: { top: '65%', left: '15%' }, // LB
+                        2: { top: '65%', left: '30%' }, // CB
+                        3: { top: '65%', left: '50%' }, // CB
+                        4: { top: '65%', left: '70%' }, // CB
+                        5: { top: '65%', left: '85%' }, // RB
+                        6: { top: '45%', left: '30%' }, // CM
+                        7: { top: '45%', left: '50%' }, // CM
+                        8: { top: '45%', left: '70%' }, // CM
+                        9: { top: '15%', left: '35%' }, // ST
+                        10: { top: '15%', left: '65%' } // ST
+                      }
+                    };
+
+                    const position = positions[formation][index];
+
+                    return (
+                      <Box
+                        key={player.id}
+                        position="absolute"
+                        top={position.top}
+                        left={position.left}
+                        transform="translate(-50%, -50%)"
+                        textAlign="center"
                       >
-                        {player.name}
-                      </Text>
-                      <Text 
-                        fontSize="xs" 
-                        bg="blackAlpha.700" 
-                        color="white" 
-                        px={1} 
-                        borderRadius="sm"
-                      >
-                        {player.positionInFormation} ({player.overall})
-                      </Text>
-                    </Box>
-                  );
-                })}
+                        <Avatar
+                          size="sm"
+                          name={player.name}
+                          src={player.photo}
+                          bg={team.colors.primary}
+                          color="white"
+                          mb={1}
+                        />
+                        <Text
+                          fontSize="xs"
+                          fontWeight="bold"
+                          bg="white"
+                          px={1}
+                          borderRadius="sm"
+                        >
+                          {player.name}
+                        </Text>
+                        <Text
+                          fontSize="xs"
+                          bg="blackAlpha.700"
+                          color="white"
+                          px={1}
+                          borderRadius="sm"
+                        >
+                          {player.positionInFormation} ({player.overall})
+                        </Text>
+                      </Box>
+                    );
+                  })}
                 </FootballField>
               </Box>
             </Box>
@@ -490,7 +474,7 @@ export default function PreGame() {
                   <Tab>Titulares</Tab>
                   <Tab>Banco de Reservas</Tab>
                 </TabList>
-                
+
                 <TabPanels>
                   <TabPanel>
                     <Table variant="simple" size="sm">
@@ -516,7 +500,7 @@ export default function PreGame() {
                       </Tbody>
                     </Table>
                   </TabPanel>
-                  
+
                   <TabPanel>
                     <Table variant="simple" size="sm">
                       <Thead>
@@ -536,17 +520,17 @@ export default function PreGame() {
                             <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
                             <Td isNumeric>{player.overall}</Td>
                             <Td>
-                              <Button 
-                                size="xs" 
+                              <Button
+                                size="xs"
                                 colorScheme="green"
                                 onClick={() => {
                                   const starter = selectedPlayers.find(
-                                    p => p.position === player.position || 
-                                    (p.positionInFormation && 
-                                      ['CM', 'CDM', 'CAM'].includes(p.position) && 
-                                      ['CM', 'CDM', 'CAM'].includes(player.position))
+                                    p => p.position === player.position ||
+                                      (p.positionInFormation &&
+                                        ['CM', 'CDM', 'CAM'].includes(p.position) &&
+                                        ['CM', 'CDM', 'CAM'].includes(player.position))
                                   );
-                                  
+
                                   if (starter) {
                                     swapPlayers(starter, player);
                                   } else {

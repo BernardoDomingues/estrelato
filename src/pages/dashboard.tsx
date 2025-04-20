@@ -13,7 +13,6 @@ import {
   Avatar,
   HStack,
   VStack,
-  Badge,
   Table,
   Thead,
   Tbody,
@@ -29,31 +28,32 @@ import { Team } from '../types/team';
 import { teams } from '@/data/teams';
 import { leagues } from '@/data/leagues';
 import dayjs from 'dayjs';
+import NextMatch from '@/components/NextMatch';
 
 export default function Dashboard() {
   const [managerName, setManagerName] = useState('');
   const [team, setTeam] = useState<Team | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  
+
   const bgColor = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
     const storedName = localStorage.getItem('managerName');
     const storedTeamId = localStorage.getItem('teamId');
-    
+
     if (!storedName || !storedTeamId) {
       router.replace('/');
       return;
     }
-    
+
     setManagerName(storedName);
 
     const selectedTeam = teams.find(t => t.id === parseInt(storedTeamId));
     if (selectedTeam) {
       setTeam(selectedTeam);
     }
-    
+
     setIsLoading(false);
   }, [router]);
 
@@ -79,18 +79,18 @@ export default function Dashboard() {
         <Container maxW="container.xl">
           <Flex justify="space-between" align="center">
             <HStack spacing={4}>
-              <Avatar 
-                bg={team.colors.secondary} 
+              <Avatar
+                bg={team.colors.secondary}
                 color={team.colors.primary}
-                name={team.shortName} 
-                size="md" 
+                name={team.shortName}
+                size="md"
               />
               <VStack align="start" spacing={0}>
                 <Heading size="md">{team.name}</Heading>
                 <Text fontSize="sm">Técnico: {managerName}</Text>
               </VStack>
             </HStack>
-            
+
             <HStack spacing={4}>
               <Stat size="sm">
                 <StatLabel color="whiteAlpha.800">Orçamento</StatLabel>
@@ -102,7 +102,7 @@ export default function Dashboard() {
                   }).format(team.finances.transferBudget)}
                 </StatNumber>
               </Stat>
-              
+
               <Stat size="sm">
                 <StatLabel color="whiteAlpha.800">Data</StatLabel>
                 <StatNumber>01/01/2023</StatNumber>
@@ -115,44 +115,17 @@ export default function Dashboard() {
       <Container maxW="container.xl" py={8}>
         <Grid templateColumns="repeat(12, 1fr)" gap={6}>
           <GridItem colSpan={{ base: 12, md: 8 }}>
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
-              <Heading size="md" mb={4}>Próxima Partida</Heading>
-              <Flex 
-                justify="space-between" 
-                align="center"
-                bg="gray.50" 
-                p={4} 
-                borderRadius="md"
+            <NextMatch team={team}>
+              <Button
+                colorScheme="green"
+                size="md"
+                onClick={() => router.push('/pre-game')}
+                leftIcon={<Box as="span" fontSize="lg">⚽</Box>}
               >
-                <HStack spacing={4}>
-                  <Avatar name={team.name} bg={team.colors.primary} color="white" />
-                  <Text fontWeight="bold">{team.name}</Text>
-                </HStack>
-                
-                <VStack>
-                  <Badge colorScheme="green">Brasileirão</Badge>
-                  <Text fontWeight="bold">VS</Text>
-                  <Text fontSize="sm">15/01/2023 - 16:00</Text>
-                </VStack>
-                
-                <HStack spacing={4}>
-                  <Text fontWeight="bold">Cruzeiro</Text>
-                  <Avatar name="Cruzeiro" bg="#0000FF" color="white" />
-                </HStack>
-              </Flex>
-              
-              <Flex justify="center" mt={4}>
-                <Button 
-                  colorScheme="green" 
-                  size="md" 
-                  onClick={() => router.push('/pre-game')}
-                  leftIcon={<Box as="span" fontSize="lg">⚽</Box>}
-                >
-                  Preparar para a Partida
-                </Button>
-              </Flex>
-            </Box>
-            
+                Preparar para a Partida
+              </Button>
+            </NextMatch>
+
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
               <Heading size="md" mb={4}>Elenco</Heading>
               <Table variant="simple" size="sm">
@@ -166,7 +139,7 @@ export default function Dashboard() {
                 </Thead>
                 <Tbody>
                   {team.players.map((player) => (
-                    <Tr key={player.id} _hover={{ bg: "gray.100" }}> 
+                    <Tr key={player.id} _hover={{ bg: "gray.100" }}>
                       <Td>{player.name}</Td>
                       <Td>{player.position}</Td>
                       <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
@@ -180,7 +153,17 @@ export default function Dashboard() {
 
           <GridItem colSpan={{ base: 12, md: 4 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
-              <Heading size="md" mb={4}>Classificação</Heading>
+              <Flex justify="space-between" align="center" mb={4}>
+                <Heading size="md">Classificação</Heading>
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  variant="outline"
+                  onClick={() => router.push('/league-table')}
+                >
+                  Ver Tabela Completa
+                </Button>
+              </Flex>
               <Table variant="simple" size="sm">
                 <Thead>
                   <Tr>
@@ -190,19 +173,26 @@ export default function Dashboard() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {leagues[0].teams.map((standing) => (
-                    <Tr 
-                      key={standing.id}
-                      bg={standing.id === team.id ? `${team.colors.primary}10` : undefined}
-                      fontWeight={standing.id === team.id ? "bold" : "normal"}
-                    >
-                      <Td>{standing.name}</Td>
-                    </Tr>
-                  ))}
+                  {leagues[0].standings
+                    .sort((a, b) => b.points - a.points)
+                    .slice(0, 4)
+                    .map((standing, index) => {
+                      return (
+                        <Tr
+                          key={standing.team.id}
+                          bg={standing.team.id === team.id ? `${team.colors.primary}10` : undefined}
+                          fontWeight={standing.team.id === team.id ? "bold" : "normal"}
+                        >
+                          <Td>{index + 1}</Td>
+                          <Td>{standing.team.name}</Td>
+                          <Td isNumeric>{standing.points}</Td>
+                        </Tr>
+                      );
+                    })}
                 </Tbody>
               </Table>
             </Box>
-            
+
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
               <Heading size="md" mb={4}>Finanças</Heading>
               <Stat mb={4}>
@@ -216,7 +206,7 @@ export default function Dashboard() {
                 </StatNumber>
                 <StatHelpText>Receita mensal: +R$ 1.2M</StatHelpText>
               </Stat>
-              
+
               <Stat mb={4}>
                 <StatLabel>Folha Salarial</StatLabel>
                 <StatNumber>
