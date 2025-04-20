@@ -79,8 +79,9 @@ export default function PreGame() {
   const [tacticalStyle, setTacticalStyle] = useState('balanced');
   const [defensiveStyle, setDefensiveStyle] = useState('balanced');
   const [offensiveStyle, setOffensiveStyle] = useState('balanced');
+  const [selectedBench, setSelectedBench] = useState<Player|null>(null);
 
-  console.log(selectedPlayers);
+  console.log(selectedBench);
 
   const router = useRouter();
   const toast = useToast();
@@ -433,6 +434,7 @@ export default function PreGame() {
                         transform="translate(-50%, -50%)"
                         textAlign="center"
                       >
+                        <button>
                         <Avatar
                           size="sm"
                           name={player.name}
@@ -440,7 +442,23 @@ export default function PreGame() {
                           bg={team.colors.primary}
                           color="white"
                           mb={1}
+                          onClick={() =>{
+                          
+                          if (selectedBench) {
+                                    swapPlayers(player, selectedBench);
+                                    setSelectedBench(null)
+                                  } else {
+                                    toast({
+                                      title: 'Selecione um jogador do banco de reservas',
+                                      status: 'warning',
+                                      duration: 3000,
+                                      isClosable: true,
+                                    });
+                                  }
+                          }
+                        }
                         />
+                        </button>
                         <Text
                           fontSize="xs"
                           fontWeight="bold"
@@ -522,26 +540,8 @@ export default function PreGame() {
                             <Td>
                               <Button
                                 size="xs"
-                                colorScheme="green"
-                                onClick={() => {
-                                  const starter = selectedPlayers.find(
-                                    p => p.position === player.position ||
-                                      (p.positionInFormation &&
-                                        ['CM', 'CDM', 'CAM'].includes(p.position) &&
-                                        ['CM', 'CDM', 'CAM'].includes(player.position))
-                                  );
-
-                                  if (starter) {
-                                    swapPlayers(starter, player);
-                                  } else {
-                                    toast({
-                                      title: 'Substituição não disponível',
-                                      description: 'Não há jogador compatível para substituir',
-                                      status: 'warning',
-                                      duration: 3000,
-                                      isClosable: true,
-                                    });
-                                  }
+                                 onClick= {() => {
+                                  setSelectedBench(player)
                                 }}
                               >
                                 Escalar
@@ -559,5 +559,6 @@ export default function PreGame() {
         </Grid>
       </Container>
     </Box>
+    
   );
 }
