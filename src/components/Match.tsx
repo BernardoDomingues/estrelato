@@ -31,8 +31,8 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
   const [shotsOnTarget, setShotsOnTarget] = useState({ home: 0, away: 0 });
   const [corners, setCorners] = useState({ home: 0, away: 0 });
   const [fouls, setFouls] = useState({ home: 0, away: 0 });
-  const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
   const [isSimulating, setIsSimulating] = useState(true);
+  const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [simulationSpeed, setSimulationSpeed] = useState(2); // 1x, 2x, 4x
   
@@ -184,6 +184,10 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
     setIsSimulating(false);
   };
 
+  const retomeSimulation = () => {
+    setIsSimulating(true);
+  }
+
   const changeSimulationSpeed = () => {
     setSimulationSpeed(prev => prev === 1 ? 2 : prev === 2 ? 4 : 1);
   };
@@ -222,7 +226,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
                   ) : (
                     <Button
                       colorScheme="green"
-                      onClick={startSimulation}
+                      onClick={retomeSimulation}
                     >
                       Continuar
                     </Button>
