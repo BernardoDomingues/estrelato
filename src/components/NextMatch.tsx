@@ -10,13 +10,14 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { Team } from '@/types/team';
-import { leagues } from '@/data/leagues';
 import dayjs from 'dayjs';
+import { useGameSave } from '@/store/recoil';
 
 export default function NextMatch({ team, children }: { team: Team, children: React.ReactNode }) {
   const bgColor = useColorModeValue('white', 'gray.800');
-  const nextMatch = leagues[0].fixtures.find(fixture => !fixture.played && fixture.homeTeam.id === team.id || fixture.awayTeam.id === team.id);
-  const rival = nextMatch ? (nextMatch.homeTeam.id === team.id ? nextMatch.awayTeam : nextMatch.homeTeam) : null;
+  const { getNextMatch, getNextRival } = useGameSave();
+  const nextMatch = getNextMatch();
+  const rival = getNextRival();
 
   return (
     <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
@@ -33,12 +34,12 @@ export default function NextMatch({ team, children }: { team: Team, children: Re
           <Text fontWeight="bold">{team.name}</Text>
         </HStack>
 
-        {nextMatch && rival && (
+        {rival && (
           <>
             <VStack>
               <Badge colorScheme="green">Brasileirão</Badge>
               <Text fontWeight="bold">VS</Text>
-              <Text fontSize="sm">{rival.facilities.stadium.name} - {dayjs(nextMatch.date).format('DD/MM/YYYY')}</Text>
+              <Text fontSize="sm">{rival.facilities.stadium.name} - {dayjs(nextMatch?.date).format('DD/MM/YYYY')}</Text>
             </VStack>
     
             <HStack spacing={4}>

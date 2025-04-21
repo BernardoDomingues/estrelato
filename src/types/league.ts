@@ -16,7 +16,6 @@ export interface League {
 
 export interface LeagueStanding {
   team: Team;
-  position: number;
   played: number;
   won: number;
   drawn: number;

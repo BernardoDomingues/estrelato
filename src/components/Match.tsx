@@ -12,16 +12,16 @@ import {
   Badge,
   Button,
   Progress,
-  IconButton,
   useColorModeValue,
   List,
   ListItem,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import { Team } from '../types/team';
-import { ArrowBackIcon, TimeIcon } from '@chakra-ui/icons';
+import { TimeIcon } from '@chakra-ui/icons';
 import { GameEvent, GameEventType } from '@/types/game-event';
+import { useGameSave } from '@/store/recoil';
+import { useRouter } from 'next/router';
 
 export default function Match({ team, opponent }: { team: Team; opponent: Team; }) {
   const [gameTime, setGameTime] = useState(0); // 0-90 minutos
@@ -39,11 +39,12 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
     playerName: '',
     description: 'A partida Começou!'
   }]);
+  const router = useRouter();
   const [isSimulating, setIsSimulating] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [simulationSpeed, setSimulationSpeed] = useState(2); // 1x, 2x, 4x
+  const { finishMatch, getNextMatch } = useGameSave();
 
-  const router = useRouter();
   const bgColor = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
@@ -186,8 +187,18 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
     setIsSimulating(true);
   }
 
-  const finishMatch = () => {
-    router.push('/dashboard');
+  const handleFinishMatch = () => {
+    const currentMatch = getNextMatch();
+    if (currentMatch) {
+      finishMatch(currentMatch.id,
+        gameEvents,
+        score.home,
+        score.away,
+        team.id,
+        opponent.id
+      );
+      router.push('/dashboard');
+    }
   };
 
   return (
@@ -196,14 +207,6 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
         <Container maxW="container.xl">
           <Flex justify="space-between" align="center">
             <HStack spacing={4}>
-              <IconButton
-                aria-label="Voltar"
-                icon={<ArrowBackIcon />}
-                onClick={() => router.push('/dashboard')}
-                variant="outline"
-                colorScheme="whiteAlpha"
-                isDisabled={!isGameOver && isSimulating}
-              />
               <Heading size="md">Partida em Andamento</Heading>
             </HStack>
 
@@ -238,7 +241,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
               ) : (
                 <Button
                   colorScheme="blue"
-                  onClick={finishMatch}
+                  onClick={handleFinishMatch}
                 >
                   Finalizar Partida
                 </Button>

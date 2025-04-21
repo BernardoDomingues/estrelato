@@ -22,19 +22,26 @@ import {
   Button,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import { leagues } from '@/data/leagues';
 import dayjs from 'dayjs';
 import NextMatch from '@/components/NextMatch';
 import { useGameSave } from '@/store/recoil/useGameSave';
 import SaveGameButton from '@/components/SaveGameButton';
+import { cloneDeep } from 'lodash';
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { gameState, loadGame, hasSavedGame } = useGameSave();
+  const { gameState, loadGame, hasSavedGame, getLeagueData } = useGameSave();
   const { managerName, team } = gameState;
+  const league = getLeagueData();
+
+  const standings = useMemo(() => {
+    return cloneDeep(league).standings
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 4)
+  }, [league]);
 
   const bgColor = useColorModeValue('white', 'gray.800');
 
@@ -183,22 +190,19 @@ export default function Dashboard() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {leagues[0].standings
-                    .sort((a, b) => b.points - a.points)
-                    .slice(0, 4)
-                    .map((standing, index) => {
-                      return (
-                        <Tr
-                          key={standing.team.id}
-                          bg={standing.team.id === team.id ? `${team.colors.primary}10` : undefined}
-                          fontWeight={standing.team.id === team.id ? "bold" : "normal"}
-                        >
-                          <Td>{index + 1}</Td>
-                          <Td>{standing.team.name}</Td>
-                          <Td isNumeric>{standing.points}</Td>
-                        </Tr>
-                      );
-                    })}
+                  {standings?.map((standing, index) => {
+                    return (
+                      <Tr
+                        key={standing.team.id}
+                        bg={standing.team.id === team.id ? `${team.colors.primary}10` : undefined}
+                        fontWeight={standing.team.id === team.id ? "bold" : "normal"}
+                      >
+                        <Td>{index + 1}</Td>
+                        <Td>{standing.team.name}</Td>
+                        <Td isNumeric>{standing.points}</Td>
+                      </Tr>
+                    );
+                  })}
                 </Tbody>
               </Table>
             </Box>

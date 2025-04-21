@@ -1,5 +1,7 @@
 import { atom } from 'recoil';
 import { Team } from '@/types/team';
+import { League } from '@/types/league';
+import { leagues } from '@/data/leagues';
 
 export interface GameState {
   managerName: string;
@@ -11,6 +13,7 @@ export interface GameState {
     weeklyWages: number;
     balance: number;
   };
+  league: League;
 }
 
 const initialGameState: GameState = {
@@ -23,6 +26,7 @@ const initialGameState: GameState = {
     weeklyWages: 0,
     balance: 0,
   },
+  league: leagues[0],
 };
 
 export const gameStateAtom = atom<GameState>({

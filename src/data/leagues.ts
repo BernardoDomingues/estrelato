@@ -56,7 +56,6 @@ function generateFixtures(teams: any[], startDate: Date): Fixture[] {
 function initializeStandings(teams: any[]) {
   return teams.map(team => ({
     team,
-    position: 0,
     played: 0,
     won: 0,
     drawn: 0,

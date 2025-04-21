@@ -23,15 +23,15 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { leagues } from '@/data/leagues';
 import { League, Fixture } from '@/types/league';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { useGameSave } from '@/store/recoil';
+import { cloneDeep } from 'lodash';
 
 export default function LeagueTable() {
   const [league, setLeague] = useState<League | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { hasSavedGame, gameState } = useGameSave();
+  const { hasSavedGame, gameState, getLeagueData } = useGameSave();
   const { team } = gameState;
   
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function LeagueTable() {
       return;
     }
   
-    const brasileirao = leagues[0];
+    const brasileirao = cloneDeep(getLeagueData());
     if (brasileirao) {
       const sortedStandings = [...brasileirao.standings].sort((a, b) => {
         if (a.points !== b.points) {
@@ -54,10 +54,6 @@ export default function LeagueTable() {
         } else {
           return b.goalsFor - a.goalsFor;
         }
-      });
-
-      sortedStandings.forEach((standing, index) => {
-        standing.position = index + 1;
       });
       
       setLeague({
@@ -161,13 +157,13 @@ export default function LeagueTable() {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {league.standings.map((standing) => (
+                    {league.standings.map((standing, index) => (
                       <Tr 
                         key={standing.team.id}
                         bg={standing.team.id === team?.id ? highlightColor : 'transparent'}
                         fontWeight={standing.team.id === team?.id ? "bold" : "normal"}
                       >
-                        <Td>{standing.position}</Td>
+                        <Td>{index + 1}</Td>
                         <Td>
                           <HStack>
                             <Box 

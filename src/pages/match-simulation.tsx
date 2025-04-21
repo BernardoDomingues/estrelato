@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Team } from '../types/team';
 import Match from '@/components/Match';
-import { leagues } from '@/data/leagues';
 import { useGameSave } from '@/store/recoil';
 
 export default function MatchSimulation() {
   const [opponent, setOpponent] = useState<Team | null>(null);
   const router = useRouter();
-  const { hasSavedGame, gameState } = useGameSave();
+  const { hasSavedGame, gameState, getNextRival } = useGameSave();
   const { team } = gameState;
 
   useEffect(() => {
@@ -18,8 +17,7 @@ export default function MatchSimulation() {
     }
 
     if (team) {
-      const nextMatch = leagues[0].fixtures.find(fixture => !fixture.played && fixture.homeTeam.id === team?.id || fixture.awayTeam.id === team?.id);
-      const rival = nextMatch ? (nextMatch.homeTeam.id === team?.id ? nextMatch.awayTeam : nextMatch.homeTeam) : null;
+      const rival = getNextRival();
 
       if (rival) {
         setOpponent(rival);
