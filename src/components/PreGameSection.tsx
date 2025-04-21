@@ -203,12 +203,6 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
       isClosable: true,
     });
 
-    localStorage.setItem('formation', formation);
-    localStorage.setItem('tacticalStyle', tacticalStyle);
-    localStorage.setItem('defensiveStyle', defensiveStyle);
-    localStorage.setItem('offensiveStyle', offensiveStyle);
-    localStorage.setItem('selectedPlayers', JSON.stringify(selectedPlayers));
-
     setTimeout(() => {
       router.push('/match-simulation');
     }, 1000);

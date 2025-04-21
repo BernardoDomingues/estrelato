@@ -31,17 +31,24 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
   const [shotsOnTarget, setShotsOnTarget] = useState({ home: 0, away: 0 });
   const [corners, setCorners] = useState({ home: 0, away: 0 });
   const [fouls, setFouls] = useState({ home: 0, away: 0 });
-  const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
+  const [gameEvents, setGameEvents] = useState<GameEvent[]>([{
+    type: 'possession',
+    minute: 0,
+    side: 'home',
+    team,
+    playerName: '',
+    description: 'A partida Começou!'
+  }]);
   const [isSimulating, setIsSimulating] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
   const [simulationSpeed, setSimulationSpeed] = useState(2); // 1x, 2x, 4x
-  
+
   const router = useRouter();
   const bgColor = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
     if (!isSimulating || isGameOver) return;
-    
+
     const interval = setInterval(() => {
       setGameTime(prevTime => {
         const newTime = prevTime + 1;
@@ -52,7 +59,6 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
           clearInterval(interval);
 
           setGameEvents(prev => [
-            ...prev,
             {
               type: 'possession',
               minute: 90,
@@ -60,7 +66,8 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
               team,
               playerName: '',
               description: 'Fim de jogo!'
-            }
+            },
+            ...prev
           ]);
 
           return 90;
@@ -69,11 +76,11 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
         if (Math.random() < 0.1) {
           generateRandomEvent(newTime);
         }
-        
+
         return newTime;
       });
     }, 1000 / simulationSpeed);
-    
+
     return () => clearInterval(interval);
   }, [isSimulating, isGameOver, simulationSpeed]);
 
@@ -91,7 +98,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
     let randomValue = Math.random();
     let cumulativeWeight = 0;
     let selectedEventType: GameEventType = 'chance';
-    
+
     for (let i = 0; i < eventTypes.length; i++) {
       cumulativeWeight += weights[i];
       if (randomValue <= cumulativeWeight) {
@@ -108,7 +115,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
       playerName: player.name,
       description: ''
     };
-    
+
     switch (selectedEventType) {
       case 'goal':
         newEvent.description = `${player.name} marca para o ${currentTeam.name}!`;
@@ -125,7 +132,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
           [teamSide]: prev[teamSide] + 1
         }));
         break;
-        
+
       case 'yellowCard':
         newEvent.description = `Cartão amarelo para ${player.name} do ${currentTeam.name}.`;
         setFouls(prev => ({
@@ -133,7 +140,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
           [teamSide]: prev[teamSide] + 1
         }));
         break;
-        
+
       case 'chance':
         newEvent.description = `Chance para ${currentTeam.name}! ${player.name} finaliza, mas a bola vai para fora.`;
         setShots(prev => ({
@@ -141,7 +148,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
           [teamSide]: prev[teamSide] + 1
         }));
         break;
-        
+
       case 'possession':
         const possessionChange = Math.floor(Math.random() * 10) + 5; // 5-15%
         setPossession(prev => {
@@ -154,7 +161,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
         });
         newEvent.description = `${currentTeam.name} mantém a posse de bola.`;
         break;
-        
+
       case 'corner':
         newEvent.description = `Escanteio para ${currentTeam.name}.`;
         setCorners(prev => ({
@@ -165,19 +172,6 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
     }
 
     setGameEvents(prev => [newEvent, ...prev]);
-  };
-
-  const startSimulation = () => {
-    setIsSimulating(true);
-
-    setGameEvents([{
-      type: 'possession',
-      minute: 0,
-      side: 'home',
-      team,
-      playerName: '',
-      description: 'A partida Começou!'
-    }]);
   };
 
   const pauseSimulation = () => {
@@ -212,7 +206,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
               />
               <Heading size="md">Partida em Andamento</Heading>
             </HStack>
-            
+
             <HStack>
               {!isGameOver ? (
                 <>
@@ -231,7 +225,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
                       Continuar
                     </Button>
                   )}
-                  
+
                   <Button
                     leftIcon={<TimeIcon />}
                     onClick={changeSimulationSpeed}
@@ -258,15 +252,15 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
         <Grid templateColumns="repeat(12, 1fr)" gap={6}>
           <GridItem colSpan={{ base: 12, md: 12 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
-              <Flex 
-                justify="space-between" 
+              <Flex
+                justify="space-between"
                 align="center"
               >
                 <VStack>
                   <Avatar size="lg" name={team.name} bg={team.colors.primary} color="white" />
                   <Text fontWeight="bold">{team.name}</Text>
                 </VStack>
-                
+
                 <VStack>
                   <Heading size="2xl">{score.home} - {score.away}</Heading>
                   <Badge colorScheme="green" fontSize="md" px={3} py={1}>
@@ -274,19 +268,19 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
                   </Badge>
                   <Text fontSize="sm">Brasileirão</Text>
                 </VStack>
-                
+
                 <VStack>
                   <Avatar size="lg" name={opponent?.name} bg={opponent?.colors.primary} color="white" />
                   <Text fontWeight="bold">{opponent?.name}</Text>
                 </VStack>
               </Flex>
-              
-              <Progress 
-                value={gameTime} 
-                max={90} 
-                mt={6} 
-                colorScheme="green" 
-                size="sm" 
+
+              <Progress
+                value={gameTime}
+                max={90}
+                mt={6}
+                colorScheme="green"
+                size="sm"
                 borderRadius="md"
               />
             </Box>
@@ -295,7 +289,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
           <GridItem colSpan={{ base: 12, md: 8 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
               <Heading size="md" mb={4}>Eventos da Partida</Heading>
-              
+
               <List spacing={3}>
                 {gameEvents.map((event, index) => (
                   <ListItem key={index} display="flex" alignItems="center" backgroundColor={event.type === 'goal' ? 'red.100' : 'transparent'}>
@@ -314,81 +308,81 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
           <GridItem colSpan={{ base: 12, md: 4 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
               <Heading size="md" mb={4}>Estatísticas</Heading>
-              
+
               <VStack spacing={4} align="stretch">
                 <Box>
                   <Text mb={1}>Posse de Bola</Text>
                   <Flex align="center">
                     <Text fontWeight="bold" w="40px">{possession.home}%</Text>
-                    <Progress 
-                      flex="1" 
-                      value={possession.home} 
-                      colorScheme="blue" 
-                      size="sm" 
+                    <Progress
+                      flex="1"
+                      value={possession.home}
+                      colorScheme="blue"
+                      size="sm"
                       borderRadius="md"
                     />
                     <Text fontWeight="bold" w="40px" textAlign="right">{possession.away}%</Text>
                   </Flex>
                 </Box>
-                
+
                 <Box>
                   <Text mb={1}>Finalizações</Text>
                   <Flex align="center">
                     <Text fontWeight="bold" w="40px">{shots.home}</Text>
-                    <Progress 
-                      flex="1" 
-                      value={shots.home} 
+                    <Progress
+                      flex="1"
+                      value={shots.home}
                       max={shots.home + shots.away || 1}
-                      colorScheme="blue" 
-                      size="sm" 
+                      colorScheme="blue"
+                      size="sm"
                       borderRadius="md"
                     />
                     <Text fontWeight="bold" w="40px" textAlign="right">{shots.away}</Text>
                   </Flex>
                 </Box>
-                
+
                 <Box>
                   <Text mb={1}>Finalizações no Gol</Text>
                   <Flex align="center">
                     <Text fontWeight="bold" w="40px">{shotsOnTarget.home}</Text>
-                    <Progress 
-                      flex="1" 
-                      value={shotsOnTarget.home} 
+                    <Progress
+                      flex="1"
+                      value={shotsOnTarget.home}
                       max={shotsOnTarget.home + shotsOnTarget.away || 1}
-                      colorScheme="blue" 
-                      size="sm" 
+                      colorScheme="blue"
+                      size="sm"
                       borderRadius="md"
                     />
                     <Text fontWeight="bold" w="40px" textAlign="right">{shotsOnTarget.away}</Text>
                   </Flex>
                 </Box>
-                
+
                 <Box>
                   <Text mb={1}>Escanteios</Text>
                   <Flex align="center">
                     <Text fontWeight="bold" w="40px">{corners.home}</Text>
-                    <Progress 
-                      flex="1" 
-                      value={corners.home} 
+                    <Progress
+                      flex="1"
+                      value={corners.home}
                       max={corners.home + corners.away || 1}
-                      colorScheme="blue" 
-                      size="sm" 
+                      colorScheme="blue"
+                      size="sm"
                       borderRadius="md"
                     />
                     <Text fontWeight="bold" w="40px" textAlign="right">{corners.away}</Text>
                   </Flex>
                 </Box>
-                
+
                 <Box>
                   <Text mb={1}>Faltas</Text>
                   <Flex align="center">
                     <Text fontWeight="bold" w="40px">{fouls.home}</Text>
-                    <Progress 
-                      flex="1" 
-                      value={fouls.home} 
+                    <Progress
+                      flex="1"
+                      value={fouls.home}
                       max={fouls.home + fouls.away || 1}
-                      colorScheme="blue" 
-                      size="sm" 
+                      colorScheme="blue"
+                      size="sm"
                       borderRadius="md"
                     />
                     <Text fontWeight="bold" w="40px" textAlign="right">{fouls.away}</Text>
