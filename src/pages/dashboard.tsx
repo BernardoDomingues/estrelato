@@ -24,38 +24,34 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Team } from '../types/team';
-import { teams } from '@/data/teams';
 import { leagues } from '@/data/leagues';
 import dayjs from 'dayjs';
 import NextMatch from '@/components/NextMatch';
+import { useGameSave } from '@/store/recoil/useGameSave';
+import SaveGameButton from '@/components/SaveGameButton';
 
 export default function Dashboard() {
-  const [managerName, setManagerName] = useState('');
-  const [team, setTeam] = useState<Team | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { gameState, loadGame, hasSavedGame } = useGameSave();
+  const { managerName, team } = gameState;
 
   const bgColor = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
-    const storedName = localStorage.getItem('managerName');
-    const storedTeamId = localStorage.getItem('teamId');
-
-    if (!storedName || !storedTeamId) {
+    if (!hasSavedGame()) {
       router.replace('/');
       return;
     }
 
-    setManagerName(storedName);
-
-    const selectedTeam = teams.find(t => t.id === parseInt(storedTeamId));
-    if (selectedTeam) {
-      setTeam(selectedTeam);
+    const success = loadGame();
+    if (!success) {
+      router.replace('/');
+      return;
     }
 
     setIsLoading(false);
-  }, [router]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -99,14 +95,16 @@ export default function Dashboard() {
                     style: 'currency',
                     currency: 'BRL',
                     maximumFractionDigits: 0
-                  }).format(team.finances.transferBudget)}
+                  }).format(gameState.finances.transferBudget)}
                 </StatNumber>
               </Stat>
 
               <Stat size="sm">
                 <StatLabel color="whiteAlpha.800">Data</StatLabel>
-                <StatNumber>01/01/2023</StatNumber>
+                <StatNumber>{dayjs(gameState.gameDate).format('DD/MM/YYYY')}</StatNumber>
               </Stat>
+
+              <SaveGameButton size="sm" />
             </HStack>
           </Flex>
         </Container>
@@ -202,9 +200,9 @@ export default function Dashboard() {
                     style: 'currency',
                     currency: 'BRL',
                     maximumFractionDigits: 0
-                  }).format(team.finances.transferBudget)}
+                  }).format(gameState.finances.balance)}
                 </StatNumber>
-                <StatHelpText>Receita mensal: +R$ 1.2M</StatHelpText>
+                <StatHelpText>Orçamento disponível para transferências</StatHelpText>
               </Stat>
 
               <Stat mb={4}>
@@ -214,9 +212,9 @@ export default function Dashboard() {
                     style: 'currency',
                     currency: 'BRL',
                     maximumFractionDigits: 0
-                  }).format(team.finances.wageBudget)}
+                  }).format(gameState.finances.weeklyWages)}
                 </StatNumber>
-                <StatHelpText>Por mês</StatHelpText>
+                <StatHelpText>Valor semanal</StatHelpText>
               </Stat>
             </Box>
           </GridItem>

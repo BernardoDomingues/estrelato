@@ -26,25 +26,23 @@ import { useRouter } from 'next/router';
 import { leagues } from '@/data/leagues';
 import { League, Fixture } from '@/types/league';
 import { ArrowBackIcon } from '@chakra-ui/icons';
+import { useGameSave } from '@/store/recoil';
 
 export default function LeagueTable() {
   const [league, setLeague] = useState<League | null>(null);
-  const [userTeamId, setUserTeamId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { hasSavedGame, gameState } = useGameSave();
+  const { team } = gameState;
   
   const router = useRouter();
   const bgColor = useColorModeValue('white', 'gray.800');
   const highlightColor = useColorModeValue('blue.50', 'blue.900');
 
   useEffect(() => {
-    const storedTeamId = localStorage.getItem('teamId');
-    
-    if (!storedTeamId) {
+    if (!hasSavedGame()) {
       router.replace('/');
       return;
     }
-    
-    setUserTeamId(parseInt(storedTeamId));
   
     const brasileirao = leagues[0];
     if (brasileirao) {
@@ -166,8 +164,8 @@ export default function LeagueTable() {
                     {league.standings.map((standing) => (
                       <Tr 
                         key={standing.team.id}
-                        bg={standing.team.id === userTeamId ? highlightColor : 'transparent'}
-                        fontWeight={standing.team.id === userTeamId ? "bold" : "normal"}
+                        bg={standing.team.id === team?.id ? highlightColor : 'transparent'}
+                        fontWeight={standing.team.id === team?.id ? "bold" : "normal"}
                       >
                         <Td>{standing.position}</Td>
                         <Td>

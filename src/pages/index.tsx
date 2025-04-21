@@ -12,7 +12,10 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { FaTrophy, FaUsers, FaMoneyBillWave, FaChartLine } from 'react-icons/fa';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useGameSave } from '@/store/recoil/useGameSave';
+import SavedGameInfo from '@/components/SavedGameInfo';
 
 export default function Home() {
   const bgGradient = useColorModeValue(
@@ -20,7 +23,17 @@ export default function Home() {
     'linear(to-r, green.900, blue.900)'
   );
   const textColor = useColorModeValue('gray.600', 'gray.300');
-  const router = useRouter()
+  const router = useRouter();
+  const { hasSavedGame, loadGame } = useGameSave();
+  const [showSavedGame, setShowSavedGame] = useState(false);
+
+  useEffect(() => {
+    setShowSavedGame(hasSavedGame());
+
+    if (hasSavedGame()) {
+      loadGame();
+    }
+  }, []);
 
   return (
     <Box>
@@ -49,14 +62,19 @@ export default function Home() {
                 Assuma o controle de seu time do coração e leve-o ao topo do futebol.
                 Gerencie jogadores, finanças e dispute os principais campeonatos.
               </Text>
-              <Button
-                size="lg"
-                colorScheme="green"
-                rightIcon={<Icon as={FaTrophy} />}
-                onClick={() => router.push('/start')}
-              >
-                Começar Carreira
-              </Button>
+              
+              {showSavedGame ? (
+                <SavedGameInfo />
+              ) : (
+                <Button
+                  size="lg"
+                  colorScheme="green"
+                  rightIcon={<Icon as={FaTrophy} />}
+                  onClick={() => router.push('/start')}
+                >
+                  Começar Carreira
+                </Button>
+              )}
             </VStack>
             <Box
               boxSize={{ base: '300px', md: '400px' }}

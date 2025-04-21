@@ -11,10 +11,11 @@ import {
   useToast,
   Flex,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import TeamSelector from '../components/TeamSelector';
 import { teams } from '@/data/teams';
+import { useGameSave } from '@/store/recoil/useGameSave';
 
 export default function Start() {
   const [managerName, setManagerName] = useState('');
@@ -22,6 +23,13 @@ export default function Start() {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const router = useRouter();
+  const { startNewGame, hasSavedGame, loadGame } = useGameSave();
+
+  useEffect(() => {
+    if (hasSavedGame() && loadGame()) {
+      router.push('/dashboard');
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,12 +58,22 @@ export default function Start() {
     
     setIsLoading(true);
 
-    setTimeout(() => {
-      localStorage.setItem('managerName', managerName);
-      localStorage.setItem('teamId', selectedTeamId);
+    const success = startNewGame(managerName, parseInt(selectedTeamId));
 
-      router.push('/dashboard');
-    }, 1500);
+    if (success) {
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
+    } else {
+      setIsLoading(false);
+      toast({
+        title: 'Erro ao iniciar',
+        description: 'Ocorreu um erro ao iniciar o jogo. Tente novamente.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
