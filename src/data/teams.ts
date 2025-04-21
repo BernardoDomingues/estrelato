@@ -16,7 +16,7 @@ export const teams: Array<Team> = [
     },
     facilities: {
       stadium: {
-        name: "Estádio Governador Magalhães Pinto",
+        name: "Mineirão",
         capacity: 62170,
         condition: 0,
       },
@@ -75,12 +75,12 @@ export const teams: Array<Team> = [
     },
   },
   {
-    id: 124,
-    name: "Fluminense",
-    shortName: "FLU",
-    city: "Rio de Janeiro",
+    id: 119,
+    name: "Internacional",
+    shortName: "INT",
+    city: "Porto Alegre",
     country: "Brazil",
-    founded: new Date(1902, 0, 1),
+    founded: new Date(1909, 0, 1),
     players: [...players[3]],
     finances: {
       transferBudget: 0,
@@ -88,13 +88,13 @@ export const teams: Array<Team> = [
     },
     facilities: {
       stadium: {
-        name: "Estadio Jornalista Mário Filho (Maracanã)",
-        capacity: 78838,
+        name: "Beira Rio",
+        capacity: 50128,
         condition: 0,
       },
     },
     colors: {
-      primary: "#800000",
+      primary: "#BA0C2F",
       secondary: "#FFFFFF",
     },
   },
