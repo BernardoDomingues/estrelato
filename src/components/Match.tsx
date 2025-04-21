@@ -188,6 +188,10 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
     setSimulationSpeed(prev => prev === 1 ? 2 : prev === 2 ? 4 : 1);
   };
 
+  const retomeSimulation = () => {
+    setIsSimulating(true);
+  }
+
   const finishMatch = () => {
     router.push('/dashboard');
   };
@@ -222,7 +226,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
                   ) : (
                     <Button
                       colorScheme="green"
-                      onClick={startSimulation}
+                      onClick={retomeSimulation}
                     >
                       Continuar
                     </Button>

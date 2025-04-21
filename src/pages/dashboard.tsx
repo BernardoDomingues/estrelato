@@ -138,7 +138,19 @@ export default function Dashboard() {
                 <Tbody>
                   {team.players.map((player) => (
                     <Tr key={player.id} _hover={{ bg: "gray.100" }}>
-                      <Td>{player.name}</Td>
+                      <Td>
+                        <Flex align="center">
+                          <Avatar
+                            size="sm"
+                            name={player.name}
+                            src={player.photo}
+                            bg={team.colors.primary}
+                            color="white"
+                            mr={2}
+                          />
+                          {player.name}
+                        </Flex>
+                      </Td>
                       <Td>{player.position}</Td>
                       <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
                       <Td isNumeric>{player.overall}</Td>

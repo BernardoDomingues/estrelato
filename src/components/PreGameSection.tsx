@@ -25,6 +25,7 @@ import {
   Td,
   IconButton,
   useToast,
+  Badge,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -75,6 +76,7 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
   const [tacticalStyle, setTacticalStyle] = useState('balanced');
   const [defensiveStyle, setDefensiveStyle] = useState('balanced');
   const [offensiveStyle, setOffensiveStyle] = useState('balanced');
+  const [selectedBench, setSelectedBench] = useState<Player | null>(null);
 
   const router = useRouter();
   const toast = useToast();
@@ -409,6 +411,21 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
                           bg={team.colors.primary}
                           color="white"
                           mb={1}
+                          cursor={selectedBench ? 'pointer' : 'default'}
+                          onClick={() => {
+                            if (selectedBench) {
+                              swapPlayers(player, selectedBench);
+                              setSelectedBench(null)
+                            } else {
+                              toast({
+                                title: 'Selecione um jogador do banco de reservas',
+                                status: 'warning',
+                                duration: 3000,
+                                isClosable: true,
+                              });
+                            }
+                          }
+                          }
                         />
                         <Text
                           fontSize="xs"
@@ -452,44 +469,21 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
                           <Th>Posição</Th>
                           <Th isNumeric>Idade</Th>
                           <Th isNumeric>Overall</Th>
-                          <Th>Ações</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
                         {benchPlayers.map((player) => (
-                          <Tr key={player.id} _hover={{ bg: "gray.100" }}>
+                          <Tr key={player.id}
+                            _hover={{ bg: "gray.100" }}
+                            backgroundColor={selectedBench && selectedBench.id === player.id ? 'green.100' : 'transparent'}
+                            cursor="pointer"
+                            onClick={() => {
+                              setSelectedBench(player)
+                            }}>
                             <Td>{player.name}</Td>
                             <Td>{player.position}</Td>
                             <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
-                            <Td isNumeric>{player.overall}</Td>
-                            <Td>
-                              <Button
-                                size="xs"
-                                colorScheme="green"
-                                onClick={() => {
-                                  const starter = selectedPlayers.find(
-                                    p => p.position === player.position ||
-                                      (p.positionInFormation &&
-                                        ['CM', 'CDM', 'CAM'].includes(p.position) &&
-                                        ['CM', 'CDM', 'CAM'].includes(player.position))
-                                  );
-
-                                  if (starter) {
-                                    swapPlayers(starter, player);
-                                  } else {
-                                    toast({
-                                      title: 'Substituição não disponível',
-                                      description: 'Não há jogador compatível para substituir',
-                                      status: 'warning',
-                                      duration: 3000,
-                                      isClosable: true,
-                                    });
-                                  }
-                                }}
-                              >
-                                Escalar
-                              </Button>
-                            </Td>
+                            <Td isNumeric><Badge colorScheme={player.overall > 80 ? 'green' : player.overall > 60 ? 'yellow' : 'red'}>{player.overall}</Badge></Td>
                           </Tr>
                         ))}
                       </Tbody>
