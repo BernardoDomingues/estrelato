@@ -38,34 +38,34 @@ function TeamCard(props: TeamCardProps) {
         _focus={{
           boxShadow: `0 0 0 2px ${team.colors.primary}`,
         }}
-        px={5}
-        py={3}
+        px={{ base: 3, sm: 4, md: 5 }}
+        py={{ base: 2, sm: 3 }}
         transition="all 0.2s"
-        width="200px"
-        margin="10px"
+        width={{ base: "150px", sm: "180px", md: "200px" }}
+        margin={{ base: "5px", sm: "8px", md: "10px" }}
       >
         <VStack spacing={3}>
           <Box
             bg={team.colors.primary}
             color={team.colors.secondary}
             borderRadius="full"
-            w="80px"
-            h="80px"
+            w={{ base: "60px", sm: "70px", md: "80px" }}
+            h={{ base: "60px", sm: "70px", md: "80px" }}
             display="flex"
             alignItems="center"
             justifyContent="center"
-            fontSize="2xl"
+            fontSize={{ base: "xl", sm: "2xl" }}
             fontWeight="bold"
           >
             {team.shortName}
           </Box>
-          <Heading size="md">{team.name}</Heading>
+          <Heading size={{ base: "sm", sm: "md" }}>{team.name}</Heading>
           <HStack spacing={4}>
             <VStack align="start" spacing={0}>
-              <Text fontSize="xs" color="gray.500">
+              <Text fontSize={{ base: "2xs", sm: "xs" }} color="gray.500">
                 Fundado em
               </Text>
-              <Text fontWeight="bold">{dayjs(team.founded).format('DD/MM/YYYY')}</Text>
+              <Text fontWeight="bold" fontSize={{ base: "xs", sm: "sm" }}>{dayjs(team.founded).format('DD/MM/YYYY')}</Text>
             </VStack>
           </HStack>
         </VStack>
@@ -90,14 +90,16 @@ export default function TeamSelector({ teams, onChange, value }: TeamSelectorPro
   const group = getRootProps();
 
   return (
-    <VStack spacing={6} align="stretch" {...group}>
-      <Heading size="md">Selecione seu time</Heading>
-      <HStack spacing={4} overflowX="auto" pb={4}>
-        {teams.map((team) => {
-          const radio = getRadioProps({ value: team.id });
-          return <TeamCard key={team.id} team={team} {...radio} />;
-        })}
-      </HStack>
+    <VStack spacing={{ base: 3, sm: 4, md: 6 }} align="stretch" {...group}>
+      <Heading size={{ base: "sm", sm: "md" }}>Selecione seu time</Heading>
+      <Box overflowX="auto" pb={{ base: 2, sm: 4 }}>
+        <HStack spacing={{ base: 2, sm: 3, md: 4 }} py={2}>
+          {teams.map((team) => {
+            const radio = getRadioProps({ value: team.id });
+            return <TeamCard key={team.id} team={team} {...radio} />;
+          })}
+        </HStack>
+      </Box>
     </VStack>
   );
 }

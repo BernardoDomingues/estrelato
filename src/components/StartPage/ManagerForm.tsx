@@ -33,15 +33,16 @@ const ManagerForm = ({
       as="form" 
       onSubmit={onSubmit}
       bg="white" 
-      p={8} 
+      p={{ base: 4, sm: 6, md: 8 }} 
       borderRadius="xl"
       boxShadow="xl"
+      width="100%"
     >
-      <VStack spacing={8} align="stretch">
+      <VStack spacing={{ base: 4, sm: 6, md: 8 }} align="stretch">
         <FormControl isRequired>
-          <FormLabel fontSize="lg">Seu nome</FormLabel>
+          <FormLabel fontSize={{ base: "md", sm: "lg" }}>Seu nome</FormLabel>
           <Input 
-            size="lg"
+            size={{ base: "md", sm: "lg" }}
             placeholder="Como deseja ser chamado?"
             value={managerName}
             onChange={(e) => setManagerName(e.target.value)}
@@ -57,10 +58,11 @@ const ManagerForm = ({
         
         <Button 
           type="submit" 
-          size="lg" 
+          size={{ base: "md", sm: "lg" }} 
           colorScheme="green"
           isLoading={isLoading}
           loadingText="Iniciando carreira..."
+          width="100%"
         >
           Iniciar Carreira
         </Button>

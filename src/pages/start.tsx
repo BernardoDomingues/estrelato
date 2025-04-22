@@ -26,11 +26,18 @@ export default function Start() {
     <Box 
       minH="100vh"
       bgGradient="linear(to-b, green.50, blue.50)"
-      py={10}
+      py={{ base: 4, sm: 6, md: 10 }}
+      px={{ base: 2, sm: 4, md: 6 }}
     >
       <SavedGameChecker />
-      <Container maxW="container.lg">
-        <VStack spacing={10} align="stretch">
+      <Container 
+        maxW={{ base: "100%", sm: "90%", md: "container.md", lg: "container.lg" }}
+        px={{ base: 2, sm: 4 }}
+      >
+        <VStack 
+          spacing={{ base: 5, sm: 8, md: 10 }} 
+          align="stretch"
+        >
           <Header />
 
           <ManagerForm
