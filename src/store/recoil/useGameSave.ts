@@ -90,6 +90,10 @@ export const useGameSave = () => {
     return nextMatch ? (nextMatch.homeTeam.id === gameState.team?.id ? nextMatch.awayTeam : nextMatch.homeTeam) : null;
   }
 
+  const isLeagueFinished = (): boolean => {
+    return getLeagueData().fixtures.every(fixture => fixture.played);
+  }
+
   const updateGameState = (newGameState: GameState): void => {
     setGameState(newGameState);
     localStorage.setItem(GAME_SAVE_KEY, JSON.stringify(newGameState))
@@ -112,5 +116,6 @@ export const useGameSave = () => {
     getLeagueData,
     getNextMatch,
     getNextRival,
+    isLeagueFinished,
   };
 };
