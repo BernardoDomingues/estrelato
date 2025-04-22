@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Team } from '../types/team';
 import { GameEvent, GameEventType } from '@/types/game-event';
+import { GameState, useGameSave } from '@/store/recoil';
 
 type MatchStats = {
   score: { home: number; away: number };
@@ -30,8 +31,9 @@ type SimulationActions = {
 export const useMatchSimulation = (
   team: Team,
   opponent: Team,
-  onMatchFinished?: (events: GameEvent[], homeScore: number, awayScore: number, homeTeamId: number, awayTeamId: number) => void
+  onMatchFinished?: (gameState: GameState, events: GameEvent[], homeScore: number, awayScore: number, homeTeamId: number, awayTeamId: number) => void
 ): [SimulationState, SimulationActions] => {
+  const { gameState } = useGameSave();
   const [gameTime, setGameTime] = useState(0); // 0-90 minutos
   const [isSimulating, setIsSimulating] = useState(true);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -213,6 +215,7 @@ export const useMatchSimulation = (
   const finishMatch = () => {
     if (onMatchFinished) {
       onMatchFinished(
+        gameState,
         gameEvents,
         stats.score.home,
         stats.score.away,

@@ -6,7 +6,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { Team } from '../types/team';
-import { useGameSave } from '@/store/recoil';
+import { GameState, useGameSave } from '@/store/recoil';
 import { useRouter } from 'next/router';
 import { useMatchSimulation } from '@/hooks';
 import {
@@ -16,16 +16,19 @@ import {
   ScoreBoard,
 } from './MatchComponents';
 import { GameEvent } from '@/types/game-event';
+import { finishMatch } from '@/helpers/match';
 
 export default function Match({ team, opponent }: { team: Team; opponent: Team; }) {
   const router = useRouter();
-  const { finishMatch, getNextMatch } = useGameSave();
+  const { getNextMatch, updateGameState } = useGameSave();
   const bgColor = useColorModeValue('white', 'gray.800');
 
-  const handleMatchFinished = (gameEvents: GameEvent[], homeScore: number, awayScore: number, homeTeamId: number, awayTeamId: number) => {
+  const handleMatchFinished = (gameState: GameState, gameEvents: GameEvent[], homeScore: number, awayScore: number, homeTeamId: number, awayTeamId: number) => {
     const currentMatch = getNextMatch();
-    if (currentMatch) {
-      finishMatch(
+    if (currentMatch && gameState) {
+      const newGameState = finishMatch(
+        gameState,
+        currentMatch,
         currentMatch.id,
         gameEvents,
         homeScore,
@@ -33,6 +36,7 @@ export default function Match({ team, opponent }: { team: Team; opponent: Team; 
         homeTeamId,
         awayTeamId
       );
+      updateGameState(newGameState);
       router.push('/dashboard');
     }
   };
