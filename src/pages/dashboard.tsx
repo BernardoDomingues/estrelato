@@ -1,34 +1,18 @@
-import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  Grid,
-  GridItem,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  Flex,
-  Avatar,
-  HStack,
-  VStack,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Button,
-  useColorModeValue,
-} from '@chakra-ui/react';
+import { Box, Container, Grid, GridItem } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import dayjs from 'dayjs';
 import NextMatch from '@/components/NextMatch';
 import { useGameSave } from '@/store/recoil/useGameSave';
-import SaveGameButton from '@/components/SaveGameButton';
 import { cloneDeep } from 'lodash';
+import {
+  LoadingScreen,
+  TeamNotFoundScreen,
+  TeamHeader,
+  SquadTable,
+  StandingsTable,
+  FinancesCard,
+  PreGameButton
+} from '@/components/Dashboard';
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -42,8 +26,6 @@ export default function Dashboard() {
       .sort((a, b) => b.points - a.points)
       .slice(0, 4)
   }, [league]);
-
-  const bgColor = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
     if (!hasSavedGame()) {
@@ -61,178 +43,38 @@ export default function Dashboard() {
   }, []);
 
   if (isLoading) {
-    return (
-      <Flex height="100vh" align="center" justify="center">
-        <Text>Carregando...</Text>
-      </Flex>
-    );
+    return <LoadingScreen />;
   }
 
   if (!team) {
-    return (
-      <Flex height="100vh" align="center" justify="center">
-        <Text>Time não encontrado. <Button onClick={() => router.push('/')}>Voltar</Button></Text>
-      </Flex>
-    );
+    return <TeamNotFoundScreen />;
   }
 
   return (
     <Box minH="100vh" bg="gray.50">
-      <Box bg={team.colors.primary} color="white" py={4} px={8} boxShadow="md">
-        <Container maxW="container.xl">
-          <Flex justify="space-between" align="center">
-            <HStack spacing={4}>
-              <Avatar
-                bg={team.colors.secondary}
-                color={team.colors.primary}
-                name={team.shortName}
-                size="md"
-              />
-              <VStack align="start" spacing={0}>
-                <Heading size="md">{team.name}</Heading>
-                <Text fontSize="sm">Técnico: {managerName}</Text>
-              </VStack>
-            </HStack>
-
-            <HStack spacing={4}>
-              <Stat size="sm">
-                <StatLabel color="whiteAlpha.800">Orçamento</StatLabel>
-                <StatNumber>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0
-                  }).format(gameState.finances.transferBudget)}
-                </StatNumber>
-              </Stat>
-
-              <Stat size="sm">
-                <StatLabel color="whiteAlpha.800">Data</StatLabel>
-                <StatNumber>{dayjs(gameState.gameDate).format('DD/MM/YYYY')}</StatNumber>
-              </Stat>
-
-              <SaveGameButton size="sm" />
-            </HStack>
-          </Flex>
-        </Container>
-      </Box>
+      <TeamHeader 
+        team={team} 
+        managerName={managerName} 
+        gameState={gameState} 
+      />
 
       <Container maxW="container.xl" py={8}>
         <Grid templateColumns="repeat(12, 1fr)" gap={6}>
           <GridItem colSpan={{ base: 12, md: 8 }}>
             <NextMatch team={team}>
-              <Button
-                colorScheme="green"
-                size="md"
-                onClick={() => router.push('/pre-game')}
-                leftIcon={<Box as="span" fontSize="lg">⚽</Box>}
-              >
-                Preparar para a Partida
-              </Button>
+              <PreGameButton />
             </NextMatch>
 
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
-              <Heading size="md" mb={4}>Elenco</Heading>
-              <Table variant="simple" size="sm">
-                <Thead>
-                  <Tr>
-                    <Th>Nome</Th>
-                    <Th>Posição</Th>
-                    <Th isNumeric>Idade</Th>
-                    <Th isNumeric>Overall</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {team.players.map((player) => (
-                    <Tr key={player.id} _hover={{ bg: "gray.100" }}>
-                      <Td>
-                        <Flex align="center">
-                          <Avatar
-                            size="sm"
-                            name={player.name}
-                            src={player.photo}
-                            bg={team.colors.primary}
-                            color="white"
-                            mr={2}
-                          />
-                          {player.name}
-                        </Flex>
-                      </Td>
-                      <Td>{player.position}</Td>
-                      <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
-                      <Td isNumeric>{player.overall}</Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </Box>
+            <SquadTable team={team} />
           </GridItem>
 
           <GridItem colSpan={{ base: 12, md: 4 }}>
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
-              <Flex justify="space-between" align="center" mb={4}>
-                <Heading size="md">Classificação</Heading>
-                <Button
-                  size="sm"
-                  colorScheme="blue"
-                  variant="outline"
-                  onClick={() => router.push('/league-table')}
-                >
-                  Ver Tabela Completa
-                </Button>
-              </Flex>
-              <Table variant="simple" size="sm">
-                <Thead>
-                  <Tr>
-                    <Th>#</Th>
-                    <Th>Time</Th>
-                    <Th isNumeric>Pts</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {standings?.map((standing, index) => {
-                    return (
-                      <Tr
-                        key={standing.team.id}
-                        bg={standing.team.id === team.id ? `${team.colors.primary}10` : undefined}
-                        fontWeight={standing.team.id === team.id ? "bold" : "normal"}
-                      >
-                        <Td>{index + 1}</Td>
-                        <Td>{standing.team.name}</Td>
-                        <Td isNumeric>{standing.points}</Td>
-                      </Tr>
-                    );
-                  })}
-                </Tbody>
-              </Table>
-            </Box>
+            <StandingsTable 
+              standings={standings} 
+              currentTeam={team} 
+            />
 
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
-              <Heading size="md" mb={4}>Finanças</Heading>
-              <Stat mb={4}>
-                <StatLabel>Saldo</StatLabel>
-                <StatNumber>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0
-                  }).format(gameState.finances.balance)}
-                </StatNumber>
-                <StatHelpText>Orçamento disponível para transferências</StatHelpText>
-              </Stat>
-
-              <Stat mb={4}>
-                <StatLabel>Folha Salarial</StatLabel>
-                <StatNumber>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    maximumFractionDigits: 0
-                  }).format(gameState.finances.weeklyWages)}
-                </StatNumber>
-                <StatHelpText>Valor semanal</StatHelpText>
-              </Stat>
-            </Box>
+            <FinancesCard finances={gameState.finances} />
           </GridItem>
         </Grid>
       </Container>
