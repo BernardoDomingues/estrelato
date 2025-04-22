@@ -1,8 +1,6 @@
 import {
   Box,
   Container,
-  Flex,
-  Text,
   Tabs,
   TabList,
   TabPanels,
