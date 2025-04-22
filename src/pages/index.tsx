@@ -81,7 +81,7 @@ export default function Home() {
               position="relative"
             >
               <Image
-                src="../assets/stadium.jpg"
+                src="/assets/stadium.jpg"
                 alt="Estádio de futebol"
                 borderRadius="xl"
                 boxShadow="2xl"
