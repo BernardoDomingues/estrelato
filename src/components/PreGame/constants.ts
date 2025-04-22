@@ -1,19 +1,4 @@
-import { Player } from '@/types/player';
-
-export type Formation = '4-4-2' | '4-3-3' | '3-5-2' | '4-2-3-1' | '5-3-2';
-
-export interface PlayerWithPosition extends Player {
-  isSelected?: boolean;
-  positionInFormation?: string;
-}
-
-export interface GameSettings {
-  formation: Formation;
-  tacticalStyle: string;
-  defensiveStyle: string;
-  offensiveStyle: string;
-  selectedPlayers: PlayerWithPosition[];
-}
+import { Formation } from "@/types/match-settings";
 
 export const formationPositions: Record<Formation, string[]> = {
   '4-4-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'LM', 'CM', 'CM', 'RM', 'ST', 'ST'],

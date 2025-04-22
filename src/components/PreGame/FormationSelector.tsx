@@ -1,5 +1,5 @@
+import { Formation } from '@/types/match-settings';
 import { Select, Box, Text } from '@chakra-ui/react';
-import { Formation } from './types';
 
 interface FormationSelectorProps {
   formation: Formation;

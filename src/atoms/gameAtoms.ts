@@ -1,7 +1,7 @@
 import { atom } from 'recoil';
-import { GameSettings } from '@/components/PreGame/types';
+import { MatchSettings } from '@/types/match-settings';
 
-export const gameSettingsState = atom<GameSettings>({
+export const gameSettingsState = atom<MatchSettings>({
   key: 'gameSettingsState',
   default: {
     formation: '4-3-3',

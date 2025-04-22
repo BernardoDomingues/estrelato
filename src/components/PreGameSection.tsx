@@ -22,14 +22,12 @@ import {
   TeamLineup,
   BenchPlayers,
   MatchControls,
-  PlayerWithPosition,
-  Formation,
   formationPositions,
   compatiblePositions,
-  GameSettings
 } from './PreGame';
 import { useSetRecoilState } from 'recoil';
 import { gameSettingsState, matchTeamsState } from '@/atoms/gameAtoms';
+import { Formation, MatchSettings, PlayerWithPosition } from '@/types/match-settings';
 
 export default function PreGameSection({ team, opponent }: { team: Team, opponent: Team }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -145,7 +143,7 @@ export default function PreGameSection({ team, opponent }: { team: Team, opponen
   };
 
   const startMatch = () => {
-    const gameSettings: GameSettings = {
+    const gameSettings: MatchSettings = {
       formation,
       tacticalStyle,
       defensiveStyle,

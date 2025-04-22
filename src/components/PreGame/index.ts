@@ -3,4 +3,4 @@ export { default as TacticalSettings } from './TacticalSettings';
 export { default as TeamLineup } from './TeamLineup';
 export { default as BenchPlayers } from './BenchPlayers';
 export { default as MatchControls } from './MatchControls';
-export * from './types';
+export * from './constants';

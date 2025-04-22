@@ -1,7 +1,7 @@
 import { Box, Heading, Avatar, Text, useToast } from '@chakra-ui/react';
 import FootballField from '@/components/FootballField';
-import { PlayerWithPosition } from './types';
 import { Team } from '@/types/team';
+import { PlayerWithPosition } from '@/types/match-settings';
 
 interface TeamLineupProps {
   formation: string;

@@ -1,6 +1,6 @@
+import { PlayerWithPosition } from '@/types/match-settings';
 import { Box, Table, Thead, Tbody, Tr, Th, Td, Badge, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
 import dayjs from 'dayjs';
-import { PlayerWithPosition } from './types';
 
 interface BenchPlayersProps {
   benchPlayers: PlayerWithPosition[];
