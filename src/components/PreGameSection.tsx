@@ -6,69 +6,32 @@ import {
   Grid,
   GridItem,
   Flex,
-  Avatar,
   HStack,
-  VStack,
-  Button,
-  Select,
-  useColorModeValue,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   IconButton,
+  useColorModeValue,
   useToast,
-  Badge,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Player } from '../types/player';
-import dayjs from 'dayjs';
-import { ArrowBackIcon, CheckIcon } from '@chakra-ui/icons';
-import FootballField from '@/components/FootballField';
-import NextMatch from '@/components/NextMatch';
+import { ArrowBackIcon } from '@chakra-ui/icons';
 import { Team } from '@/types/team';
 
-type Formation = '4-4-2' | '4-3-3' | '3-5-2' | '4-2-3-1' | '5-3-2';
+import {
+  FormationSelector,
+  TacticalSettings,
+  TeamLineup,
+  BenchPlayers,
+  MatchControls,
+  PlayerWithPosition,
+  Formation,
+  formationPositions,
+  compatiblePositions,
+  GameSettings
+} from './PreGame';
+import { useSetRecoilState } from 'recoil';
+import { gameSettingsState, matchTeamsState } from '@/atoms/gameAtoms';
 
-interface PlayerWithPosition extends Player {
-  isSelected?: boolean;
-  positionInFormation?: string;
-}
-
-const formationPositions: Record<Formation, string[]> = {
-  '4-4-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'LM', 'CM', 'CM', 'RM', 'ST', 'ST'],
-  '4-3-3': ['GK', 'LB', 'CB', 'CB', 'RB', 'CDM', 'CM', 'CM', 'LW', 'ST', 'RW'],
-  '3-5-2': ['GK', 'CB', 'CB', 'CB', 'LM', 'CM', 'CDM', 'CM', 'RM', 'ST', 'ST'],
-  '4-2-3-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'CDM', 'CDM', 'LM', 'CAM', 'RM', 'ST'],
-  '5-3-2': ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CM', 'CM', 'CM', 'ST', 'ST'],
-};
-
-
-const compatiblePositions: Record<string, string[]> = {
-  'GK': ['GK'],
-  'CB': ['CB', 'CDM'],
-  'LB': ['LB', 'LM', 'CB'],
-  'RB': ['RB', 'RM', 'CB'],
-  'CDM': ['CDM', 'CM'],
-  'CM': ['CM', 'CDM', 'CAM'],
-  'LM': ['LM', 'LW', 'LB', 'CM'],
-  'RM': ['RM', 'RW', 'RB', 'CM'],
-  'CAM': ['CAM', 'CM'],
-  'LW': ['LW', 'LM', 'ST', 'CF'],
-  'RW': ['RW', 'RM', 'ST', 'CF'],
-  'ST': ['ST', 'CF', 'LW', 'RW'],
-  'CF': ['CF', 'ST', 'CAM']
-};
-
-export default function PreGameSecton({ team, opponent }: { team: Team, opponent: Team }) {
+export default function PreGameSection({ team, opponent }: { team: Team, opponent: Team }) {
   const [isLoading, setIsLoading] = useState(true);
   const [formation, setFormation] = useState<Formation>('4-3-3');
   const [selectedPlayers, setSelectedPlayers] = useState<PlayerWithPosition[]>([]);
@@ -76,7 +39,9 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
   const [tacticalStyle, setTacticalStyle] = useState('balanced');
   const [defensiveStyle, setDefensiveStyle] = useState('balanced');
   const [offensiveStyle, setOffensiveStyle] = useState('balanced');
-  const [selectedBench, setSelectedBench] = useState<Player | null>(null);
+  const [selectedBench, setSelectedBench] = useState<PlayerWithPosition | null>(null);
+  const setGamegameSettingsState = useSetRecoilState(gameSettingsState);
+  const setMatchTeamsState = useSetRecoilState(matchTeamsState);
 
   const router = useRouter();
   const toast = useToast();
@@ -142,23 +107,7 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
     setBenchPlayers(remaining);
 
     setIsLoading(false);
-  }, [router, formation]);
-
-  const handleFormationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormation(e.target.value as Formation);
-  };
-
-  const handleTacticalStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTacticalStyle(e.target.value);
-  };
-
-  const handleDefensiveStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDefensiveStyle(e.target.value);
-  };
-
-  const handleOffensiveStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setOffensiveStyle(e.target.value);
-  };
+  }, [team, formation]);
 
   const swapPlayers = (starter: PlayerWithPosition, bench: PlayerWithPosition) => {
     const positionInFormation = starter.positionInFormation || '';
@@ -192,9 +141,21 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
 
     setSelectedPlayers(updatedStarters);
     setBenchPlayers(updatedBench);
+    setSelectedBench(null);
   };
 
   const startMatch = () => {
+    const gameSettings: GameSettings = {
+      formation,
+      tacticalStyle,
+      defensiveStyle,
+      offensiveStyle,
+      selectedPlayers
+    };
+
+    setGamegameSettingsState(gameSettings);
+    setMatchTeamsState({ teamId: team.id, opponentId: opponent.id });
+
     toast({
       title: 'Partida iniciada!',
       description: 'Iniciando a simulação da partida...',
@@ -208,6 +169,32 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
     }, 1000);
   };
 
+  const handleFormationChange = (newFormation: Formation) => {
+    setFormation(newFormation);
+  };
+
+  const handleTacticalStyleChange = (style: string) => {
+    setTacticalStyle(style);
+  };
+
+  const handleDefensiveStyleChange = (style: string) => {
+    setDefensiveStyle(style);
+  };
+
+  const handleOffensiveStyleChange = (style: string) => {
+    setOffensiveStyle(style);
+  };
+
+  const handleStarterClick = (player: PlayerWithPosition) => {
+    if (selectedBench) {
+      swapPlayers(player, selectedBench);
+    }
+  };
+
+  const handleBenchPlayerSelect = (player: PlayerWithPosition) => {
+    setSelectedBench(player);
+  };
+
   if (isLoading) {
     return (
       <Flex height="100vh" align="center" justify="center">
@@ -219,7 +206,7 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
   if (!team || !opponent) {
     return (
       <Flex height="100vh" align="center" justify="center">
-        <Text>Time não encontrado. <Button onClick={() => router.push('/')}>Voltar</Button></Text>
+        <Text>Time não encontrado. <button onClick={() => router.push('/')}>Voltar</button></Text>
       </Flex>
     );
   }
@@ -246,246 +233,45 @@ export default function PreGameSecton({ team, opponent }: { team: Team, opponent
       <Container maxW="container.xl" py={8}>
         <Grid templateColumns="repeat(12, 1fr)" gap={6}>
           <GridItem colSpan={{ base: 12, md: 12 }}>
-            <NextMatch team={team}>
-              <Button
-                rightIcon={<CheckIcon />}
-                colorScheme="green"
-                variant="solid"
-                onClick={startMatch}
-              >
-                Iniciar Partida
-              </Button>
-            </NextMatch>
+            <MatchControls team={team} onStartMatch={startMatch} />
           </GridItem>
 
           <GridItem colSpan={{ base: 12, md: 4 }}>
             <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
               <Heading size="md" mb={4}>Configurações Táticas</Heading>
 
-              <VStack spacing={4} align="stretch">
-                <Box>
-                  <Text mb={2}>Formação</Text>
-                  <Select value={formation} onChange={handleFormationChange}>
-                    <option value="4-3-3">4-3-3</option>
-                    <option value="4-4-2">4-4-2</option>
-                    <option value="3-5-2">3-5-2</option>
-                    <option value="4-2-3-1">4-2-3-1</option>
-                    <option value="5-3-2">5-3-2</option>
-                  </Select>
-                </Box>
+              <FormationSelector
+                formation={formation}
+                onFormationChange={handleFormationChange}
+              />
 
-                <Box>
-                  <Text mb={2}>Estilo de Jogo</Text>
-                  <Select value={tacticalStyle} onChange={handleTacticalStyleChange}>
-                    <option value="possession">Posse de Bola</option>
-                    <option value="counter">Contra-Ataque</option>
-                    <option value="balanced">Equilibrado</option>
-                    <option value="direct">Jogo Direto</option>
-                  </Select>
-                </Box>
-
-                <Box>
-                  <Text mb={2}>Estilo Defensivo</Text>
-                  <Select value={defensiveStyle} onChange={handleDefensiveStyleChange}>
-                    <option value="high-press">Pressão Alta</option>
-                    <option value="balanced">Equilibrado</option>
-                    <option value="defensive">Defensivo</option>
-                    <option value="park-the-bus">Retrancado</option>
-                  </Select>
-                </Box>
-
-                <Box>
-                  <Text mb={2}>Estilo Ofensivo</Text>
-                  <Select value={offensiveStyle} onChange={handleOffensiveStyleChange}>
-                    <option value="attacking">Ofensivo</option>
-                    <option value="balanced">Equilibrado</option>
-                    <option value="creative">Criativo</option>
-                    <option value="cautious">Cauteloso</option>
-                  </Select>
-                </Box>
-              </VStack>
+              <TacticalSettings
+                tacticalStyle={tacticalStyle}
+                defensiveStyle={defensiveStyle}
+                offensiveStyle={offensiveStyle}
+                onTacticalStyleChange={handleTacticalStyleChange}
+                onDefensiveStyleChange={handleDefensiveStyleChange}
+                onOffensiveStyleChange={handleOffensiveStyleChange}
+              />
             </Box>
           </GridItem>
 
           <GridItem colSpan={{ base: 12, md: 8 }}>
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md" mb={6}>
-              <Heading size="md" mb={4}>Escalação: {formation}</Heading>
-
-              <Box
-                borderRadius="md"
-                p={4}
-                height="400px"
-                position="relative"
-              >
-                <FootballField>
-                  {selectedPlayers.map((player, index) => {
-                    const positions: Record<Formation, Record<number, { top: string, left: string }>> = {
-                      '4-3-3': {
-                        0: { top: '85%', left: '50%' }, // GK
-                        1: { top: '65%', left: '20%' }, // LB
-                        2: { top: '65%', left: '35%' }, // CB
-                        3: { top: '65%', left: '65%' }, // CB
-                        4: { top: '65%', left: '80%' }, // RB
-                        5: { top: '45%', left: '50%' }, // CDM
-                        6: { top: '45%', left: '30%' }, // CM
-                        7: { top: '45%', left: '70%' }, // CM
-                        8: { top: '25%', left: '20%' }, // LW
-                        9: { top: '15%', left: '50%' }, // ST
-                        10: { top: '25%', left: '80%' } // RW
-                      },
-                      '4-4-2': {
-                        0: { top: '85%', left: '50%' }, // GK
-                        1: { top: '65%', left: '20%' }, // LB
-                        2: { top: '65%', left: '35%' }, // CB
-                        3: { top: '65%', left: '65%' }, // CB
-                        4: { top: '65%', left: '80%' }, // RB
-                        5: { top: '45%', left: '20%' }, // LM
-                        6: { top: '45%', left: '35%' }, // CM
-                        7: { top: '45%', left: '65%' }, // CM
-                        8: { top: '45%', left: '80%' }, // RM
-                        9: { top: '15%', left: '35%' }, // ST
-                        10: { top: '15%', left: '65%' } // ST
-                      },
-                      '3-5-2': {
-                        0: { top: '85%', left: '50%' }, // GK
-                        1: { top: '65%', left: '30%' }, // CB
-                        2: { top: '65%', left: '50%' }, // CB
-                        3: { top: '65%', left: '70%' }, // CB
-                        4: { top: '45%', left: '15%' }, // LM
-                        5: { top: '45%', left: '35%' }, // CM
-                        6: { top: '45%', left: '50%' }, // CDM
-                        7: { top: '45%', left: '65%' }, // CM
-                        8: { top: '45%', left: '85%' }, // RM
-                        9: { top: '15%', left: '35%' }, // ST
-                        10: { top: '15%', left: '65%' } // ST
-                      },
-                      '4-2-3-1': {
-                        0: { top: '85%', left: '50%' }, // GK
-                        1: { top: '65%', left: '20%' }, // LB
-                        2: { top: '65%', left: '35%' }, // CB
-                        3: { top: '65%', left: '65%' }, // CB
-                        4: { top: '65%', left: '80%' }, // RB
-                        5: { top: '50%', left: '35%' }, // CDM
-                        6: { top: '50%', left: '65%' }, // CDM
-                        7: { top: '30%', left: '20%' }, // LM
-                        8: { top: '30%', left: '50%' }, // CAM
-                        9: { top: '30%', left: '80%' }, // RM
-                        10: { top: '15%', left: '50%' } // ST
-                      },
-                      '5-3-2': {
-                        0: { top: '85%', left: '50%' }, // GK
-                        1: { top: '65%', left: '15%' }, // LB
-                        2: { top: '65%', left: '30%' }, // CB
-                        3: { top: '65%', left: '50%' }, // CB
-                        4: { top: '65%', left: '70%' }, // CB
-                        5: { top: '65%', left: '85%' }, // RB
-                        6: { top: '45%', left: '30%' }, // CM
-                        7: { top: '45%', left: '50%' }, // CM
-                        8: { top: '45%', left: '70%' }, // CM
-                        9: { top: '15%', left: '35%' }, // ST
-                        10: { top: '15%', left: '65%' } // ST
-                      }
-                    };
-
-                    const position = positions[formation][index];
-
-                    return (
-                      <Box
-                        key={player.id}
-                        position="absolute"
-                        top={position.top}
-                        left={position.left}
-                        transform="translate(-50%, -50%)"
-                        textAlign="center"
-                      >
-                        <Avatar
-                          size="sm"
-                          name={player.name}
-                          src={player.photo}
-                          bg={team.colors.primary}
-                          color="white"
-                          mb={1}
-                          cursor={selectedBench ? 'pointer' : 'default'}
-                          onClick={() => {
-                            if (selectedBench) {
-                              swapPlayers(player, selectedBench);
-                              setSelectedBench(null)
-                            } else {
-                              toast({
-                                title: 'Selecione um jogador do banco de reservas',
-                                status: 'warning',
-                                duration: 3000,
-                                isClosable: true,
-                              });
-                            }
-                          }
-                          }
-                        />
-                        <Text
-                          fontSize="xs"
-                          fontWeight="bold"
-                          bg="white"
-                          px={1}
-                          borderRadius="sm"
-                        >
-                          {player.name}
-                        </Text>
-                        <Text
-                          fontSize="xs"
-                          bg="blackAlpha.700"
-                          color="white"
-                          px={1}
-                          borderRadius="sm"
-                        >
-                          {player.positionInFormation} ({player.overall})
-                        </Text>
-                      </Box>
-                    );
-                  })}
-                </FootballField>
-              </Box>
-            </Box>
+            <TeamLineup
+              formation={formation}
+              selectedPlayers={selectedPlayers}
+              team={team}
+              selectedBench={selectedBench}
+              onPlayerClick={handleStarterClick}
+            />
           </GridItem>
 
           <GridItem colSpan={{ base: 12, md: 12 }}>
-            <Box bg={bgColor} p={6} borderRadius="lg" boxShadow="md">
-              <Tabs variant="enclosed">
-                <TabList>
-                  <Tab>Banco de Reservas</Tab>
-                </TabList>
-
-                <TabPanels>
-                  <TabPanel>
-                    <Table variant="simple" size="sm">
-                      <Thead>
-                        <Tr>
-                          <Th>Nome</Th>
-                          <Th>Posição</Th>
-                          <Th isNumeric>Idade</Th>
-                          <Th isNumeric>Overall</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {benchPlayers.map((player) => (
-                          <Tr key={player.id}
-                            _hover={{ bg: "gray.100" }}
-                            backgroundColor={selectedBench && selectedBench.id === player.id ? 'green.100' : 'transparent'}
-                            cursor="pointer"
-                            onClick={() => {
-                              setSelectedBench(player)
-                            }}>
-                            <Td>{player.name}</Td>
-                            <Td>{player.position}</Td>
-                            <Td isNumeric>{dayjs().diff(player.birth, 'year')}</Td>
-                            <Td isNumeric><Badge colorScheme={player.overall > 80 ? 'green' : player.overall > 60 ? 'yellow' : 'red'}>{player.overall}</Badge></Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                  </TabPanel>
-                </TabPanels>
-              </Tabs>
-            </Box>
+            <BenchPlayers
+              benchPlayers={benchPlayers}
+              selectedBench={selectedBench}
+              onBenchPlayerSelect={handleBenchPlayerSelect}
+            />
           </GridItem>
         </Grid>
       </Container>
